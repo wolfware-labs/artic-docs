@@ -66,3 +66,58 @@ The script adds a major.minor slug to `versions.json` and runs `pnpm build`, whi
 starlight-versions copy the current docs into a versioned snapshot under `src/content/`.
 Contributor docs are left out of snapshots because they always track `main`. Commit
 `versions.json` and the new files under `src/content/`.
+
+## Deploying
+
+Three workflows under `.github/workflows/` build and ship the site.
+
+| Workflow | Runs on | What it does |
+| --- | --- | --- |
+| `ci.yml` | Pull requests to `main` | Runs the unit tests, the e2e tests and a smoke check of the Docker image. Nothing is pushed. |
+| `deploy.yml` | Pushes to `main`, nightly at 06:23 UTC, manual runs from `main` | Builds the site and the image, smoke-tests it and pushes it to Docker Hub. |
+| `archive-docs.yml` | A `framework-release` dispatch, or a manual run | Archives the docs for a framework release and opens a pull request. |
+
+On a push, the `release` job in `deploy.yml` runs semantic-release first. It tags
+`vX.Y.Z` and creates the GitHub release; it doesn't commit anything. The `deploy` job
+then pushes `docker.io/wolfware/artic-site` with these tags:
+
+| Tag | When | Who uses it |
+| --- | --- | --- |
+| `<run number>` | Every deploy | The cluster, which picks up new images from Docker Hub. |
+| `site-<version>` | HEAD has a release tag | People. |
+
+There is no `latest` tag.
+
+### Repo settings
+
+| Setting | Kind | Used for |
+| --- | --- | --- |
+| `DOCKERHUB_USERNAME` | Variable | Docker Hub login. |
+| `DOCKERHUB_TOKEN` | Secret | Docker Hub login. |
+| `PUBLIC_DOCSEARCH_APP_ID`, `PUBLIC_DOCSEARCH_API_KEY`, `PUBLIC_DOCSEARCH_INDEX`, `PUBLIC_MAILERLITE_ACTION` | Variables, optional | Build-time values from the table above. |
+
+Turn on Settings > Actions > General > "Allow GitHub Actions to create and approve pull
+requests". The archive workflow opens its pull request with the workflow token. Pull
+requests opened that way don't trigger `ci.yml`, so the workflow builds and tests the
+archive itself.
+
+### Archiving from a framework release
+
+The framework repo sends `framework-release` with the version in `client_payload`:
+
+```sh
+gh api repos/wolfware-labs/artic-docs/dispatches \
+  -f event_type=framework-release \
+  -f 'client_payload[version]=0.2.0'
+```
+
+The workflow archives the docs and opens a pull request titled
+`docs: archive the 0.2 docs`. A patch release of a line that is already archived, like
+0.1.1 after 0.1.0, does nothing. To run it by hand, start "Archive docs" from the
+Actions tab and enter the version.
+
+### Checking the image locally
+
+```sh
+pnpm build && docker build -t artic-site:dev . && bash scripts/smoke-image.sh artic-site:dev
+```
