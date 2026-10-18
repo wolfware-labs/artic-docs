@@ -1,0 +1,52 @@
+/* Map artic tokens onto Starlight. Dark theme first, light theme below. */
+:root {
+  --sl-font: var(--font-body);
+  --sl-font-mono: var(--font-mono);
+
+  --sl-color-white: var(--line);
+  --sl-color-gray-1: #cfdde8;
+  --sl-color-gray-2: var(--mute);
+  --sl-color-gray-3: #6d869b;
+  --sl-color-gray-4: #3a5169;
+  --sl-color-gray-5: var(--edge);
+  --sl-color-gray-6: var(--panel);
+  --sl-color-black: var(--bg);
+
+  --sl-color-accent-low: #123436;
+  --sl-color-accent: #2f8f8c;
+  --sl-color-accent-high: var(--teal);
+
+  --sl-color-bg: var(--bg);
+  --sl-color-bg-nav: var(--bg);
+  --sl-color-bg-sidebar: var(--bg);
+  --sl-color-hairline: var(--edge);
+  --sl-color-hairline-light: var(--edge);
+  --sl-color-hairline-shade: var(--panel);
+}
+
+:root[data-theme='light'] {
+  --sl-color-white: #0f1b26;
+  --sl-color-gray-1: #1d3040;
+  --sl-color-gray-2: #35506a;
+  --sl-color-gray-3: #5b7690;
+  --sl-color-gray-4: #9db3c6;
+  --sl-color-gray-5: #cddae5;
+  --sl-color-gray-6: #e8eff5;
+  --sl-color-gray-7: #f3f7fa;
+  --sl-color-black: #ffffff;
+
+  --sl-color-accent-low: #cfeceb;
+  --sl-color-accent: #1f7c79;
+  --sl-color-accent-high: #145654;
+
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: #ffffff;
+  --sl-color-bg-sidebar: #f3f7fa;
+  --sl-color-hairline: #cddae5;
+  --sl-color-hairline-light: #cddae5;
+  --sl-color-hairline-shade: #e8eff5;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}

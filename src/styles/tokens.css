@@ -1,0 +1,28 @@
+@import '@fontsource/barlow/400.css';
+@import '@fontsource/barlow/500.css';
+@import '@fontsource/barlow/600.css';
+@import '@fontsource/barlow-condensed/500.css';
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/barlow-condensed/700.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+
+:root {
+  --bg: #0f1b26;
+  --panel: #0b151e;
+  --edge: #21364a;
+  --line: #e3eef6;
+  --mute: #8aa3b8;
+  --teal: #6cc3c0;
+  --steel: #4a78a8;
+  --peri: #8fa8e8;
+  --paper: #0e2135;
+  --grid: #1d3b58;
+  --grid-major: #24496b;
+
+  --font-display: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --content-max: 1120px;
+}
