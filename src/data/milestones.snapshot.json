@@ -1,0 +1,65 @@
+[
+  {
+    "number": 1,
+    "title": "M0 Foundations",
+    "url": "https://github.com/wolfware-labs/artic/milestone/1",
+    "open": 0,
+    "closed": 33
+  },
+  {
+    "number": 2,
+    "title": "M1 First pixels",
+    "url": "https://github.com/wolfware-labs/artic/milestone/2",
+    "open": 11,
+    "closed": 17
+  },
+  {
+    "number": 3,
+    "title": "M2 Both paths",
+    "url": "https://github.com/wolfware-labs/artic/milestone/3",
+    "open": 16,
+    "closed": 0
+  },
+  {
+    "number": 4,
+    "title": "M3 Interaction",
+    "url": "https://github.com/wolfware-labs/artic/milestone/4",
+    "open": 33,
+    "closed": 0
+  },
+  {
+    "number": 5,
+    "title": "M4 Styling",
+    "url": "https://github.com/wolfware-labs/artic/milestone/5",
+    "open": 17,
+    "closed": 0
+  },
+  {
+    "number": 6,
+    "title": "M5 Data",
+    "url": "https://github.com/wolfware-labs/artic/milestone/6",
+    "open": 18,
+    "closed": 0
+  },
+  {
+    "number": 7,
+    "title": "M6 Mobile",
+    "url": "https://github.com/wolfware-labs/artic/milestone/7",
+    "open": 18,
+    "closed": 0
+  },
+  {
+    "number": 8,
+    "title": "M7 Accessibility and polish",
+    "url": "https://github.com/wolfware-labs/artic/milestone/8",
+    "open": 22,
+    "closed": 0
+  },
+  {
+    "number": 9,
+    "title": "M8 Language server",
+    "url": "https://github.com/wolfware-labs/artic/milestone/9",
+    "open": 18,
+    "closed": 0
+  }
+]
