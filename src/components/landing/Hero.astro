@@ -1,5 +1,6 @@
 ---
 import IceBackground from './IceBackground.astro';
+import HeroDemo from './HeroDemo';
 ---
 
 <header class="hero">
@@ -18,18 +19,8 @@ import IceBackground from './IceBackground.astro';
           <a class="btn ghost" href="#how-it-works">How it works</a>
         </div>
       </div>
-      <div class="demo" aria-label="A XAML sign-in form and the window it renders">
-        <pre class="code"><code><span class="t">&lt;StackPanel</span> <span class="a">Spacing</span>=<span class="s">"8"</span> <span class="a">Margin</span>=<span class="s">"16"</span><span class="t">&gt;</span>
-  <span class="t">&lt;TextBox</span> <span class="a">Text</span>=<span class="s">"{'{'}Binding Email, Mode=TwoWay{'}'}"</span>
-           <span class="a">Placeholder</span>=<span class="s">"Email"</span><span class="t">/&gt;</span>
-  <span class="t">&lt;Button</span> <span class="a">Classes</span>=<span class="s">"primary"</span> <span class="a">Content</span>=<span class="s">"Sign in"</span>
-          <span class="a">Command</span>=<span class="s">"{'{'}Binding SignIn{'}'}"</span><span class="t">/&gt;</span>
-<span class="t">&lt;/StackPanel&gt;</span></code></pre>
-        <div class="win" aria-hidden="true">
-          <div class="bar"><i></i><i></i><i></i></div>
-          <div class="field">you@example.com</div>
-          <div class="pbtn">Sign in</div>
-        </div>
+      <div class="demo">
+        <HeroDemo client:visible />
       </div>
     </div>
   </div>
@@ -41,18 +32,30 @@ import IceBackground from './IceBackground.astro';
     overflow: hidden;
     background: radial-gradient(120% 90% at 70% 10%, #1d3550 0%, var(--bg) 60%);
     padding: 34px 0 72px;
+    /* Fill the first screen so the next section stays out of view until the reader scrolls. */
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
   }
   .container {
     position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
   }
   .body {
     display: flex;
     gap: 56px;
     align-items: center;
     margin-top: 64px;
+    flex: 1;
   }
   .copy {
-    flex: 1 1 0;
+    position: relative;
+    z-index: 2;
+    flex: 0 0 470px;
     min-width: 0;
   }
   h1 {
@@ -71,7 +74,7 @@ import IceBackground from './IceBackground.astro';
   }
   .sub {
     margin: 0 0 28px;
-    max-width: 440px;
+    max-width: 420px;
     font-size: 18px;
     line-height: 1.5;
     color: var(--mute);
@@ -101,62 +104,14 @@ import IceBackground from './IceBackground.astro';
   }
   .demo {
     position: relative;
-    flex: 0 1 500px;
-    height: 290px;
-    max-width: 100%;
+    z-index: 1;
+    flex: 1 1 0;
+    min-width: 0;
   }
-  .code {
-    margin: 0;
-    padding: 16px;
-    background: var(--panel);
-    border: 1px solid #23394d;
-    border-radius: 10px;
-    font: 400 12.5px/1.6 var(--font-mono);
-    color: #c9dbe8;
-    overflow: hidden;
-  }
-  .code code {
-    font: inherit;
-  }
-  .t { color: var(--peri); }
-  .a { color: var(--teal); }
-  .s { color: #e6c07b; }
-  .win {
-    position: absolute;
-    right: -10px;
-    top: 170px;
-    width: 230px;
-    padding: 12px;
-    background: #f4f8fb;
-    color: #18293a;
-    border-radius: 8px;
-    box-shadow: 0 20px 40px #0008;
-  }
-  .bar { display: flex; gap: 4px; margin-bottom: 10px; }
-  .bar i { width: 8px; height: 8px; border-radius: 50%; background: #cfd9e2; }
-  .field {
-    border: 1px solid #c9d6e1;
-    border-radius: 5px;
-    padding: 7px 9px;
-    margin-bottom: 7px;
-    background: #fff;
-    font-size: 12px;
-    color: #5c7184;
-  }
-  .pbtn {
-    padding: 7px;
-    border-radius: 5px;
-    background: var(--steel);
-    color: #fff;
-    font-size: 12px;
-    text-align: center;
-  }
-
   @media (max-width: 1100px) {
     .body { flex-direction: column; align-items: stretch; gap: 40px; margin-top: 40px; }
     h1 { font-size: 44px; }
-    .demo { flex: none; width: 100%; height: auto; padding-bottom: 130px; }
-    .code { overflow-x: auto; }
-    .win { right: 8px; top: auto; bottom: 0; }
+    .copy { flex: none; }
+    .demo { flex: none; width: 100%; margin-left: 0; }
   }
 </style>

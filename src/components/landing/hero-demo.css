@@ -1,0 +1,360 @@
+/* Hero demo: a large device running the app, with the XAML editor overlapping its side. */
+.hd {
+  --w: 400px;
+  --h: 280px;
+  --r: 12px;
+  --bezel: 0px;
+  --overlap: 56px;
+  --morph: 0.75s cubic-bezier(0.34, 1.25, 0.5, 1);
+  position: relative;
+  padding-bottom: 58px;
+}
+.hd[data-device='tablet'] {
+  --w: 330px;
+  --h: 420px;
+  --r: 28px;
+  --bezel: 12px;
+  --overlap: 30px;
+}
+.hd[data-device='phone'] {
+  --w: 224px;
+  --h: 450px;
+  --r: 38px;
+  --bezel: 10px;
+  /* Narrow frame: overlap only the bezel so the button stays in view. */
+  --overlap: 22px;
+}
+
+.hd-stage {
+  position: relative;
+  height: 470px;
+}
+
+/* A soft glow behind the device ties it to the page. */
+.hd-stage::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: min(480px, 100%);
+  height: 480px;
+  transform: translateY(-50%);
+  background: radial-gradient(closest-side, rgb(108 195 192 / 0.14), transparent);
+  pointer-events: none;
+}
+
+/* ---------- Device ---------- */
+.hd-device {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: var(--w);
+  height: var(--h);
+  padding: var(--bezel);
+  border-radius: var(--r);
+  transform: translateY(-50%);
+  background: linear-gradient(160deg, #1b2e41, #08121c 60%);
+  box-shadow:
+    0 40px 80px -24px #000c,
+    0 0 0 1px #2c4560,
+    inset 0 1px 0 #3a5875;
+  transition:
+    width var(--morph),
+    height var(--morph),
+    padding var(--morph),
+    border-radius var(--morph);
+}
+
+.hd-screen {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: #f4f8fb;
+  color: #18293a;
+  border-radius: calc(var(--r) - var(--bezel));
+  transition: border-radius var(--morph);
+}
+
+/* The content fades back in after the frame changes shape. */
+.hd-app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  animation: hd-in 0.55s ease 0.35s both;
+}
+@keyframes hd-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+/* A light sweep across the glass marks each change of device. */
+.hd-glare {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.55) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: hd-glare 0.9s ease 0.15s;
+  pointer-events: none;
+}
+@keyframes hd-glare {
+  to { transform: translateX(120%); }
+}
+
+.hd-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  background: #e3eaf0;
+  flex: none;
+}
+.hd-titlebar i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #c6d2dc;
+}
+.hd-titlebar span {
+  margin: 0 auto;
+  transform: translateX(-24px);
+  font: 500 12px var(--font-body);
+  color: #6a7f91;
+}
+
+.hd-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 30px;
+  /* Room on the right for the reload dot. */
+  padding: 0 34px 0 20px;
+  flex: none;
+  font: 600 12px var(--font-body);
+  color: #18293a;
+}
+.hd-signal {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10px;
+}
+.hd-signal b {
+  width: 3px;
+  background: #18293a;
+  border-radius: 1px;
+}
+.hd-signal b:nth-child(1) { height: 4px; }
+.hd-signal b:nth-child(2) { height: 7px; }
+.hd-signal b:nth-child(3) { height: 10px; }
+
+.hd-ui {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+  padding: 0 24px 24px;
+  transition: gap 0.3s ease;
+}
+.hd-field {
+  border: 1px solid #c9d6e1;
+  border-radius: 8px;
+  padding: 11px 13px;
+  background: #fff;
+  font: 400 14px var(--font-body);
+  color: #5c7184;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hd-btn {
+  padding: 11px;
+  border-radius: 8px;
+  color: #fff;
+  font: 600 14px var(--font-body);
+  text-align: center;
+  white-space: nowrap;
+  transition: background 0.35s ease;
+}
+.hd-primary { background: var(--steel); }
+.hd-accent { background: #2f8f8c; }
+
+/* A teal dot flashes each time the window picks up an edit. */
+.hd-reload {
+  position: absolute;
+  right: 12px;
+  top: 11px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--teal);
+  opacity: 0;
+  animation: hd-reload 0.6s ease-out;
+}
+@keyframes hd-reload {
+  0% { opacity: 1; transform: scale(1.5); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* ---------- Editor card ---------- */
+.hd-code {
+  position: absolute;
+  z-index: 2;
+  right: calc(var(--w) - var(--overlap));
+  bottom: 30px;
+  width: 338px;
+  margin: 0;
+  padding: 36px 16px 16px;
+  background: rgb(11 21 30 / 0.94);
+  backdrop-filter: blur(6px);
+  border: 1px solid #2a4258;
+  border-radius: 12px;
+  box-shadow: 0 30px 60px -20px #000d;
+  font: 400 12.5px/1.7 var(--font-mono);
+  color: #c9dbe8;
+  white-space: pre;
+  overflow: hidden;
+  transition: right var(--morph);
+}
+.hd-code code {
+  font: inherit;
+}
+.hd-file {
+  position: absolute;
+  left: 16px;
+  top: 10px;
+  font: 500 12px var(--font-mono);
+  color: var(--mute);
+}
+.hd .t { color: var(--peri); }
+.hd .a { color: var(--teal); }
+.hd .s { color: #e6c07b; }
+
+/* The value being typed gets a soft highlight and a blinking caret. */
+.hd-edit {
+  background: #16314a;
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px #16314a;
+}
+.hd-caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1.1em;
+  margin-left: 1px;
+  vertical-align: -0.15em;
+  background: var(--line);
+  animation: hd-blink 1s steps(1) infinite;
+}
+@keyframes hd-blink {
+  50% { opacity: 0; }
+}
+
+/* ---------- Device switch ---------- */
+.hd-switch {
+  position: absolute;
+  right: 200px;
+  bottom: 0;
+  transform: translateX(50%);
+  display: grid;
+  grid-template-columns: repeat(3, 84px);
+  padding: 4px;
+  border: 1px solid #23394d;
+  border-radius: 999px;
+  background: rgb(11 21 30 / 0.7);
+  font: 500 13px var(--font-body);
+}
+.hd-switch span:not(.hd-thumb) {
+  position: relative;
+  z-index: 1;
+  padding: 7px 0;
+  text-align: center;
+  color: var(--mute);
+  transition: color 0.3s;
+}
+.hd-switch span.on {
+  color: #06121c;
+}
+.hd-thumb {
+  position: absolute;
+  z-index: 0;
+  left: 4px;
+  top: 4px;
+  bottom: 4px;
+  width: 84px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--teal), var(--steel));
+  transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.5, 1);
+}
+.hd[data-device='phone'] .hd-thumb { transform: translateX(84px); }
+.hd[data-device='tablet'] .hd-thumb { transform: translateX(168px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hd-device,
+  .hd-screen,
+  .hd-code,
+  .hd-ui,
+  .hd-btn,
+  .hd-thumb {
+    transition: none;
+  }
+  .hd-app,
+  .hd-glare,
+  .hd-caret,
+  .hd-reload {
+    animation: none;
+  }
+}
+
+/* ---------- Narrow screens: editor on top, device below ---------- */
+@media (max-width: 1100px) {
+  .hd {
+    --overlap: 0px;
+    padding-bottom: 0;
+  }
+  .hd[data-device='desktop'] { --w: 300px; --h: 210px; }
+  .hd[data-device='tablet'] { --w: 240px; --h: 310px; }
+  .hd[data-device='phone'] { --w: 180px; --h: 340px; }
+  .hd-stage {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .hd-stage::before {
+    right: 50%;
+    transform: translate(50%, -10%);
+    width: min(380px, 100%);
+    height: 380px;
+  }
+  .hd-code {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    order: -1;
+    overflow-x: auto;
+    font-size: 11.5px;
+  }
+  /* Reserve the tallest frame so the page doesn't jump as the device changes. */
+  .hd-device {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    margin: calc((340px - var(--h)) / 2) 0;
+  }
+  .hd-ui {
+    padding: 0 14px 14px;
+  }
+  .hd-switch {
+    position: relative;
+    right: auto;
+    transform: none;
+    margin: 20px auto 0;
+    width: max-content;
+  }
+}
