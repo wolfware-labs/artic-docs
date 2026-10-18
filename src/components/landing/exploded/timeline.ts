@@ -39,6 +39,13 @@ export function phases(p: number): Phases {
   };
 }
 
+/** Which of the three steps the drawing is on: 0 assembled, 1 apart, 2 swapped. */
+export function stageAt(p: number): 0 | 1 | 2 {
+  const ph = phases(p);
+  if (ph.unplug > 0) return 2;
+  return ph.explode < 0.5 ? 0 : 1;
+}
+
 /** Where the drawing rests when it can't follow the scroll: everything out, before the swap. */
 export const STATIC_PROGRESS = 0.72;
 

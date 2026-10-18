@@ -58,6 +58,28 @@ test.describe('exploded stack at 1600px', () => {
     await expect(root.getByText('your skia adapter')).toHaveCount(0);
   });
 
+  test('names the layers and says to scroll before the stack opens', async ({ page }) => {
+    await goLive(page);
+    const root = island(page);
+    await scrollTrackTo(page, 0);
+    await expect(root).toHaveAttribute('data-progress', '0');
+    // The drawing paints the bottom layer first.
+    await expect(root.locator('.xs-wide .xs-tag')).toHaveText([
+      'Host',
+      'Renderer',
+      'Core',
+      'View language',
+    ]);
+    await expect(root.locator('.xs-steps .on')).toContainText('Assembled');
+    await expect(root.locator('.xs-steps')).toContainText('Scroll to take it apart');
+
+    await scrollTrackTo(page, 1);
+    await expect(root).toHaveAttribute('data-progress', '1');
+    await expect(root.locator('.xs-wide .xs-tag')).toHaveCount(0);
+    await expect(root.locator('.xs-steps .on')).toContainText('Swapped');
+    await expect(root.locator('.xs-steps')).toContainText('New renderer, same app');
+  });
+
   test('the drawing has nothing to focus', async ({ page }) => {
     await goLive(page);
     const focusable = await island(page)
@@ -82,6 +104,7 @@ test.describe('exploded stack with reduced motion', () => {
     expect(position).not.toBe('sticky');
     await expect(root.locator('.xs-wide').getByText('Rust builder')).toBeVisible();
     await expect(root.locator('.xs-wide').getByText('artic-vello')).toBeVisible();
+    await expect(root.locator('.xs-steps')).toHaveCount(0);
   });
 });
 
@@ -98,6 +121,24 @@ test.describe('exploded stack at 375px', () => {
     await expect(root).toHaveAttribute('data-swapped', 'true');
     await expect(root.locator('.xs-callouts')).toContainText('your skia adapter');
     await expect(root.locator('.xs-wide')).toHaveCount(0);
+  });
+
+  test('keeps the layer names inside the drawing', async ({ page }) => {
+    await goLive(page);
+    await scrollTrackTo(page, 0);
+    await expect(island(page)).toHaveAttribute('data-progress', '0');
+    const { tags, clipped } = await page.evaluate(() => {
+      const svg = document.querySelector('#how-it-works .xs-narrow')!.getBoundingClientRect();
+      const boxes = [...document.querySelectorAll('#how-it-works .xs-narrow .xs-tag text')].map(
+        (t) => t.getBoundingClientRect(),
+      );
+      return {
+        tags: boxes.length,
+        clipped: boxes.filter((r) => r.left < svg.left || r.right > svg.right).length,
+      };
+    });
+    expect(tags).toBe(4);
+    expect(clipped).toBe(0);
   });
 });
 

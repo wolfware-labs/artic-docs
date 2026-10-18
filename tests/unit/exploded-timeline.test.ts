@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { phases, step } from '../../src/components/landing/exploded/timeline';
+import { phases, stageAt, step } from '../../src/components/landing/exploded/timeline';
 import { frame, NARROW, WIDE } from '../../src/components/landing/exploded/geometry';
 import { LAYERS } from '../../src/components/landing/exploded/layers';
 
@@ -33,6 +33,23 @@ describe('phases', () => {
         expect(v).toBeLessThanOrEqual(1);
       }
     }
+  });
+});
+
+describe('stageAt', () => {
+  it('reads assembled until the stack is half open', () => {
+    expect(stageAt(0)).toBe(0);
+    expect(stageAt(0.15)).toBe(0);
+  });
+
+  it('reads apart while the layers and their alternatives are out', () => {
+    expect(stageAt(0.4)).toBe(1);
+    expect(stageAt(0.72)).toBe(1);
+  });
+
+  it('reads swapped once the renderer starts to unplug', () => {
+    expect(stageAt(0.8)).toBe(2);
+    expect(stageAt(1)).toBe(2);
   });
 });
 
@@ -75,5 +92,23 @@ describe('frame', () => {
     expect(end.main.ghost).toBe(1);
     expect(end.alts[0].cx).toBe(WIDE.cx);
     expect(end.alts[0].ghost).toBe(0);
+  });
+
+  it('tags each layer by name beside the closed stack, on the side its layout picks', () => {
+    for (const L of [WIDE, NARROW]) {
+      for (const f of frame(0, L)) {
+        expect(f.tag.opacity).toBe(1);
+        if (L.tagSide === 'left') expect(f.tag.x).toBeLessThan(L.cx - L.w);
+        else expect(f.tag.x).toBeGreaterThan(L.cx + L.w);
+        expect(f.tag.y).toBeGreaterThan(f.main.cy);
+        expect(f.tag.y).toBeLessThan(f.main.cy + L.t);
+      }
+    }
+  });
+
+  it('fades the tags out before the callouts draw in', () => {
+    expect(frame(0.15, WIDE)[0].tag.opacity).toBeGreaterThan(0);
+    expect(frame(0.15, WIDE)[0].tag.opacity).toBeLessThan(1);
+    expect(frame(0.3, WIDE)[0].tag.opacity).toBe(0);
   });
 });
