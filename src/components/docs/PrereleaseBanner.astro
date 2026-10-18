@@ -1,5 +1,6 @@
 ---
 // One place for the banner markup: later plugins append their own banners here.
+import VersionBanner from 'starlight-versions/components/VersionBanner.astro';
 ---
 
 <div class="prerelease-banner">
@@ -7,6 +8,7 @@
     artic is pre-release. Things change fast; see the <a href="/#roadmap">roadmap</a>.
   </p>
 </div>
+<VersionBanner />
 
 <style>
   .prerelease-banner {
