@@ -1,4 +1,4 @@
-import snapshot from '../data/milestones.snapshot.json';
+import snapshot from '../data/milestones.snapshot.json' with { type: 'json' };
 
 export type Milestone = {
   number: number;

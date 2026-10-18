@@ -1,10 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { milestoneStatus, type Milestone } from '../../src/lib/milestones';
 import { expectNoHorizontalScroll } from './helpers';
 
-const snapshot = JSON.parse(
-  readFileSync('src/data/milestones.snapshot.json', 'utf8'),
-) as { number: number; title: string; url: string; open: number; closed: number }[];
+// The e2e build sets ROADMAP_OFFLINE=1 (see playwright.config.ts), so the page shows
+// exactly this snapshot.
+const snapshot = (
+  JSON.parse(readFileSync('src/data/milestones.snapshot.json', 'utf8')) as Milestone[]
+).sort((a, b) => a.number - b.number);
 
 test.describe('roadmap', () => {
   test.beforeEach(async ({ page }) => {
@@ -30,10 +33,16 @@ test.describe('roadmap', () => {
   });
 
   test('statuses follow the issue counts', async ({ page }) => {
-    await expect(page.locator('#roadmap [data-milestone="1"]')).toHaveAttribute('data-status', 'done');
-    await expect(page.locator('#roadmap [data-milestone="2"]')).toHaveAttribute('data-status', 'in-progress');
-    await expect(page.locator('#roadmap [data-milestone="3"] .state')).toHaveText('Next');
-    await expect(page.locator('#roadmap [data-milestone="4"] .state')).toHaveText('Planned');
+    const labels = { done: 'Done', 'in-progress': 'In progress', planned: 'Planned' };
+    const firstPlanned = snapshot.find((m) => milestoneStatus(m) === 'planned')?.number;
+    for (const m of snapshot) {
+      const status = milestoneStatus(m);
+      const el = page.locator(`#roadmap [data-milestone="${m.number}"]`);
+      await expect(el).toHaveAttribute('data-status', status);
+      await expect(el.locator('.state')).toHaveText(
+        m.number === firstPlanned ? 'Next' : labels[status],
+      );
+    }
   });
 
   test('the in-progress milestone shows its counts', async ({ page }) => {
