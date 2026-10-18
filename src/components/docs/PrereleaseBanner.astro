@@ -1,0 +1,34 @@
+---
+// One place for the banner markup: later plugins append their own banners here.
+---
+
+<div class="prerelease-banner">
+  <p>
+    artic is pre-release. Things change fast; see the <a href="/#roadmap">roadmap</a>.
+  </p>
+</div>
+
+<style>
+  .prerelease-banner {
+    border: 1px dashed var(--peri);
+    border-radius: 4px;
+    background: var(--panel);
+    color: var(--mute);
+    padding: 0.5rem 0.9rem;
+    margin-block-end: 1.25rem;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+  }
+  .prerelease-banner p {
+    margin: 0;
+  }
+  .prerelease-banner a {
+    color: var(--peri);
+    text-underline-offset: 0.2em;
+  }
+  .prerelease-banner a:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
+</style>
