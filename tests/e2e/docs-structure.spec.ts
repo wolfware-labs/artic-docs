@@ -77,3 +77,32 @@ test('reference links to the Rust API repository', async ({ page }) => {
     page.locator('main a[href="https://github.com/wolfware-labs/artic"]').first(),
   ).toBeVisible();
 });
+
+test.describe('docs layout at 1920px', () => {
+  test.use({ viewport: { width: 1920, height: 1000 } });
+
+  test('a page with no sections drops the table of contents and widens the text', async ({ page }) => {
+    await page.goto('/docs/start-here/install/');
+    await expect(page.locator('.right-sidebar')).toHaveCount(0);
+    const width = await page
+      .locator('main .sl-container')
+      .first()
+      .evaluate((el) => el.getBoundingClientRect().width);
+    expect(width).toBeGreaterThanOrEqual(820);
+  });
+
+  test('a page with sections keeps its table of contents', async ({ page }) => {
+    await page.goto('/docs/contributing/architecture/');
+    await expect(page.locator('.right-sidebar starlight-toc')).toBeVisible();
+  });
+
+  test('the next-page link follows the content without an empty row', async ({ page }) => {
+    await page.goto('/docs/start-here/install/');
+    const gap = await page.evaluate(() => {
+      const content = document.querySelector('.sl-markdown-content')!.getBoundingClientRect();
+      const next = document.querySelector('.pagination-links')!.getBoundingClientRect();
+      return next.top - content.bottom;
+    });
+    expect(gap).toBeLessThanOrEqual(56);
+  });
+});

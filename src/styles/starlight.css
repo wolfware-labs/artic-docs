@@ -50,3 +50,15 @@
 h1, h2, h3, h4 {
   font-family: var(--font-display);
 }
+
+/* Wide screens have room for longer lines, which code samples need most. */
+@media (min-width: 80rem) {
+  :root {
+    --sl-content-width: 52.5rem;
+  }
+}
+
+/* With no edit link and no last-updated date the meta row is empty but still takes a gap. */
+footer .meta:not(:has(*)) {
+  display: none;
+}
