@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { expectNoHorizontalScroll } from './helpers';
 
 for (const width of [1600, 1024, 920, 375]) {
+  const stacked = width <= 1100;
   test.describe(`landing at ${width}px`, () => {
     test.use({ viewport: { width, height: 900 } });
 
@@ -20,6 +21,14 @@ for (const width of [1600, 1024, 920, 375]) {
       expect(fits).toBe(true);
       const copy = await page.locator('.hero h1').evaluate((el) => el.getBoundingClientRect().width);
       expect(copy).toBeGreaterThan(280);
+    });
+
+    test(`hero ${stacked ? 'stacks' : 'sits side by side'}`, async ({ page }) => {
+      const copy = await page.locator('.hero .copy').boundingBox();
+      const demo = await page.locator('.hero .demo').boundingBox();
+      if (!copy || !demo) throw new Error('hero columns missing');
+      if (stacked) expect(demo.y).toBeGreaterThanOrEqual(copy.y + copy.height);
+      else expect(demo.y).toBeLessThan(copy.y + copy.height);
     });
 
     test('content columns stay within 1120px', async ({ page }) => {
