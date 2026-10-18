@@ -46,6 +46,8 @@ export default defineConfig({
     react(),
     starlight({
       title: 'artic',
+      // Starlight asks for /favicon.svg by default; point it at the logo the landing page uses.
+      favicon: '/brand/artic-logo.png',
       plugins: starlightPlugins(),
       // DocSearch replaces Pagefind, which would otherwise index the build for nothing.
       pagefind: !docsearch,
