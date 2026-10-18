@@ -33,6 +33,18 @@ type ApiMilestone = {
   closed_issues: number;
 };
 
+function isApiMilestone(m: unknown): m is ApiMilestone {
+  if (typeof m !== 'object' || m === null) return false;
+  const x = m as Record<string, unknown>;
+  return (
+    Number.isFinite(x.number) &&
+    Number.isFinite(x.open_issues) &&
+    Number.isFinite(x.closed_issues) &&
+    typeof x.title === 'string' &&
+    typeof x.html_url === 'string'
+  );
+}
+
 type Options = {
   fetch?: typeof globalThis.fetch;
   token?: string | undefined;
@@ -56,7 +68,9 @@ export async function loadMilestones({
     const res = await fetch(ENDPOINT, { headers, signal: AbortSignal.timeout(10_000) });
     if (res.status !== 200) throw new Error(`GitHub answered ${res.status}`);
     const body = (await res.json()) as ApiMilestone[];
-    if (!Array.isArray(body)) throw new Error('unexpected response shape');
+    if (!Array.isArray(body) || body.length === 0 || !body.every(isApiMilestone)) {
+      throw new Error('unexpected response shape');
+    }
     return body
       .map((m) => ({
         number: m.number,

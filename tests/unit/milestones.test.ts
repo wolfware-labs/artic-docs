@@ -52,6 +52,19 @@ describe('loadMilestones', () => {
     expect(warn).toHaveBeenCalledTimes(1);
   });
 
+  it('returns the snapshot on an empty list', async () => {
+    warn.mockClear();
+    expect(await loadMilestones({ fetch: api([]) as never, token: '' })).toEqual(snapshot);
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the snapshot when an item is missing closed_issues', async () => {
+    warn.mockClear();
+    const f = api([{ number: 1, title: 'A', html_url: 'https://x/1', open_issues: 0 }]);
+    expect(await loadMilestones({ fetch: f as never, token: '' })).toEqual(snapshot);
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
   it('maps the API shape and sorts by number', async () => {
     const f = api([
       { number: 2, title: 'B', html_url: 'https://x/2', open_issues: 1, closed_issues: 2 },
@@ -67,7 +80,7 @@ describe('loadMilestones', () => {
   });
 
   it('sends the token as a bearer header', async () => {
-    const f = api([]);
+    const f = api([{ number: 1, title: 'A', html_url: 'https://x/1', open_issues: 0, closed_issues: 1 }]);
     await loadMilestones({ fetch: f as never, token: 'abc' });
     const init = f.mock.calls[0][1] as RequestInit;
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer abc');
