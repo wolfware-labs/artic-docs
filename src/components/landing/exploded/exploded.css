@@ -1,0 +1,203 @@
+/* The exploded stack. Static by default (no JS yet, or reduced motion); the island sets
+   data-live once it can follow the scroll. */
+
+.xs-track {
+  position: relative;
+  background: var(--paper);
+}
+
+.xs-stage {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:
+    120px 120px,
+    120px 120px,
+    24px 24px,
+    24px 24px;
+  background-position: center;
+}
+
+/* Fade the grid out toward the edges. */
+.xs-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 70% 65% at 55% 50%, transparent 40%, var(--paper) 100%);
+}
+
+.xs-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 56px 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.xs h2 {
+  margin: 0 0 12px;
+  font: 700 clamp(34px, 4.2vw, 54px) / 1 var(--font-display);
+  letter-spacing: -0.01em;
+  color: var(--line);
+}
+
+.xs-one {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--mute);
+}
+
+.xs-drawing {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.xs-wide {
+  aspect-ratio: 1000 / 620;
+}
+
+.xs-narrow {
+  aspect-ratio: 420 / 440;
+}
+
+.xs-ann {
+  font: 600 19px var(--font-display);
+  fill: var(--line);
+}
+
+.xs-id {
+  font: 500 12.5px var(--font-mono);
+  fill: var(--mute);
+}
+
+.xs-seam {
+  fill: var(--teal);
+  color: var(--teal);
+}
+
+.xs-face {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  fill: #0c1a28;
+  fill-opacity: 0.82;
+  letter-spacing: 0.02em;
+}
+
+.xs-cap {
+  font: 500 13px var(--font-mono);
+  fill: #cbd8f5;
+}
+
+.xs-narrow-body {
+  display: none;
+}
+
+/* Following the scroll: a tall track with the drawing pinned while it plays. */
+.xs[data-live='true'] .xs-track {
+  height: 600vh;
+}
+
+.xs[data-live='true'] .xs-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+}
+
+.xs[data-live='true'] .xs-wrap {
+  height: 100%;
+}
+
+.xs[data-live='true'] .xs-drawing {
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xs[data-live='true'] .xs-track {
+    height: auto;
+  }
+  .xs[data-live='true'] .xs-stage {
+    position: relative;
+    height: auto;
+  }
+}
+
+/* Narrow screens: smaller slabs, callouts listed under the drawing. */
+@media (max-width: 899.98px) {
+  .xs-wrap {
+    padding: 40px 16px 24px;
+  }
+
+  .xs-wide {
+    display: none;
+  }
+
+  .xs-narrow-body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 560px;
+    margin-inline: auto;
+  }
+
+  .xs[data-live='true'] .xs-narrow-body {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .xs-one {
+    font-size: 16px;
+  }
+
+  .xs-cap {
+    font-size: 13px;
+  }
+}
+
+.xs-callouts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.xs-callouts li {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.xs-swatch {
+  width: 20px;
+  height: 10px;
+  margin-bottom: 4px;
+}
+
+.xs-name {
+  font: 600 17px / 1.15 var(--font-display);
+  color: var(--line);
+}
+
+.xs-crate {
+  font: 500 11.5px / 1.4 var(--font-mono);
+  color: var(--mute);
+}
+
+.xs-crate span span {
+  white-space: nowrap;
+}
