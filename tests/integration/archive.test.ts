@@ -50,6 +50,9 @@ describe('archive-version', () => {
       // The plugin's version picker and its "old version" notice both render.
       expect(html).toContain('<starlight-version-select');
       expect(html).toContain('This content is for the 0.1 version.');
+      // Search still renders, and the page names its version for DocSearch.
+      expect(html).toContain('data-open-modal');
+      expect(html).toContain('<meta name="docsearch:version" content="0.1">');
       // Our own banner override is still there.
       expect(html).toContain('prerelease-banner');
     },

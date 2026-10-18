@@ -1,0 +1,15 @@
+---
+// One Search slot for two plugins that both want it. DocSearch wins when Algolia is
+// configured; otherwise the versions plugin's search (when something is archived) or
+// Starlight's own. The version picker lives in the theme select, not here.
+import Default from '@astrojs/starlight/components/Search.astro';
+import DocSearch from '@astrojs/starlight-docsearch/DocSearch.astro';
+import VersionSearch from 'starlight-versions/components/VersionSearch.astro';
+import versions from '../../../versions.json';
+import { docsearchEnabled } from '../../lib/search.mjs';
+
+const useDocSearch = docsearchEnabled(process.env);
+const useVersionSearch = !useDocSearch && versions.length > 0;
+---
+
+{useDocSearch ? <DocSearch /> : useVersionSearch ? <VersionSearch /> : <Default />}

@@ -5,10 +5,13 @@ import starlightLinksValidator from 'starlight-links-validator';
 import starlightVersions from 'starlight-versions';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { docsearchEnabled, searchPlugins } from './src/lib/search.mjs';
 import { versionsPluginConfig } from './src/lib/versions.mjs';
 
 const archived = JSON.parse(readFileSync(new URL('./versions.json', import.meta.url), 'utf8'));
 const versionsConfig = versionsPluginConfig(archived);
+const docsearch = docsearchEnabled(process.env);
+const stub = fileURLToPath(new URL('./src/components/docs/NoPlugin.astro', import.meta.url));
 
 function starlightPlugins() {
   return [
@@ -16,6 +19,7 @@ function starlightPlugins() {
     starlightLinksValidator({ exclude: ['/', '/#*'] }),
     // The versions plugin refuses an empty list, so it only loads once a release is archived.
     ...(versionsConfig ? [starlightVersions(versionsConfig)] : []),
+    ...searchPlugins(process.env),
   ];
 }
 
@@ -23,15 +27,17 @@ export default defineConfig({
   site: 'https://artic.rs',
   vite: {
     resolve: {
-      // PrereleaseBanner renders the plugin's banner, which needs the plugin's virtual
-      // modules. Without archived versions the plugin is off, so point it at an empty stub.
-      alias: versionsConfig
-        ? {}
-        : {
-            'starlight-versions/components/VersionBanner.astro': fileURLToPath(
-              new URL('./src/components/docs/NoVersionBanner.astro', import.meta.url),
-            ),
-          },
+      // Our Banner and Search overrides render components from plugins that may be off.
+      // A plugin that is off has no virtual modules, so point its components at an empty stub.
+      alias: {
+        ...(versionsConfig
+          ? {}
+          : {
+              'starlight-versions/components/VersionBanner.astro': stub,
+              'starlight-versions/components/VersionSearch.astro': stub,
+            }),
+        ...(docsearch ? {} : { '@astrojs/starlight-docsearch/DocSearch.astro': stub }),
+      },
     },
   },
   integrations: [
@@ -39,7 +45,13 @@ export default defineConfig({
     starlight({
       title: 'artic',
       plugins: starlightPlugins(),
-      components: { Banner: './src/components/docs/PrereleaseBanner.astro' },
+      // DocSearch replaces Pagefind, which would otherwise index the build for nothing.
+      pagefind: !docsearch,
+      components: {
+        Banner: './src/components/docs/PrereleaseBanner.astro',
+        Head: './src/components/docs/Head.astro',
+        Search: './src/components/docs/Search.astro',
+      },
       sidebar: [
         {
           label: 'Start here',

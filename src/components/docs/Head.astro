@@ -1,0 +1,10 @@
+---
+import Default from '@astrojs/starlight/components/Head.astro';
+import versions from '../../../versions.json';
+import { versionFromPath } from '../../lib/search.mjs';
+
+const version = versionFromPath(Astro.url.pathname, versions);
+---
+
+<Default><slot /></Default>
+<meta name="docsearch:version" content={version} />
