@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import './exploded.css';
 import { frame, NARROW, slabShapes, swapped, WIDE, type Layout, type Part } from './geometry';
 import { LAYERS, STACK_DESCRIPTION } from './layers';
-import { clamp, STATIC_PROGRESS, step } from './timeline';
+import { clamp, stageAt, STATIC_PROGRESS, step } from './timeline';
 
 const NARROW_QUERY = '(max-width: 899.98px)';
 const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
@@ -88,6 +88,8 @@ function Slab({ part, faces, layout }: { part: Part; faces: Faces; layout: Layou
 function Drawing({ progress, layout }: { progress: number; layout: Layout }) {
   const layers = frame(progress, layout);
   const k = layout.key;
+  // Tags reach outward from the stack: leftward on the left side, rightward on the right.
+  const dir = layout.tagSide === 'left' ? 1 : -1;
   return (
     <svg
       className={`xs-drawing xs-${k}`}
@@ -126,6 +128,19 @@ function Drawing({ progress, layout }: { progress: number; layout: Layout }) {
               ) : null,
             )}
             <Slab part={f.main} faces={faces} layout={layout} />
+            {f.tag.opacity > 0 && (
+              <g className="xs-tag" opacity={f.tag.opacity}>
+                <line x1={f.tag.x + 6 * dir} y1={f.tag.y} x2={f.tag.x - 14 * dir} y2={f.tag.y} />
+                <text
+                  x={f.tag.x - 20 * dir}
+                  y={f.tag.y}
+                  textAnchor={dir === 1 ? 'end' : 'start'}
+                  dy=".35em"
+                >
+                  {f.layer.name}
+                </text>
+              </g>
+            )}
             {f.leader && f.leader.opacity > 0 && (
               <g opacity={f.leader.opacity}>
                 <circle cx={f.leader.x} cy={f.leader.y} r={3} fill="#6cc3c0" />
@@ -197,6 +212,35 @@ function Callouts({ progress }: { progress: number }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+const STAGES = [
+  { name: 'Assembled', caption: 'Scroll to take it apart' },
+  { name: 'Apart', caption: 'Each layer is its own crate' },
+  { name: 'Swapped', caption: 'New renderer, same app' },
+];
+
+/** Drawing-sheet style step strip: says the drawing follows the scroll and how far it is. */
+function Steps({ progress }: { progress: number }) {
+  const at = stageAt(progress);
+  return (
+    <div className="xs-steps" aria-hidden="true">
+      <ol>
+        {STAGES.map(({ name }, i) => (
+          <li key={name} className={i === at ? 'on' : i < at ? 'done' : undefined}>
+            <span>{i + 1}</span>
+            {name}
+          </li>
+        ))}
+      </ol>
+      <div className="xs-bar">
+        <i style={{ transform: `scaleX(${progress})` }} />
+      </div>
+      <p className="xs-caption" key={at}>
+        {STAGES[at].caption}
+      </p>
+    </div>
   );
 }
 
@@ -283,11 +327,16 @@ export default function ExplodedStack() {
       <div ref={track} className="xs-track">
         <div className="xs-stage">
           <div className="xs-wrap">
-            <h2 id="how-it-works-title">Every layer comes apart.</h2>
-            <p className="xs-one">
-              Swap the view language, the renderer or the window host. Your views and logic stay
-              the same.
-            </p>
+            <div className="xs-head">
+              <div>
+                <h2 id="how-it-works-title">Every layer comes apart.</h2>
+                <p className="xs-one">
+                  Swap the view language, the renderer or the window host. Your views and logic
+                  stay the same.
+                </p>
+              </div>
+              {live && <Steps progress={shown} />}
+            </div>
             {mode !== 'narrow' && <Drawing progress={shown} layout={WIDE} />}
             {mode !== 'wide' && (
               <div className="xs-narrow-body">

@@ -103,6 +103,103 @@
   display: none;
 }
 
+/* Layer names beside the closed stack. */
+.xs-tag line {
+  stroke: var(--teal);
+  stroke-opacity: 0.8;
+}
+
+.xs-tag text {
+  font: 600 15px var(--font-display);
+  fill: var(--line);
+}
+
+.xs-narrow .xs-tag text {
+  font-size: 13px;
+}
+
+.xs-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px 32px;
+}
+
+/* Step strip, drawn like the title block of a drawing sheet. */
+.xs-steps {
+  flex: none;
+  padding: 10px 14px 12px;
+  border: 1px solid rgb(227 238 246 / 0.28);
+  background: rgb(15 27 38 / 0.6);
+}
+
+.xs-steps ol {
+  display: flex;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: 600 16px / 1 var(--font-display);
+  color: var(--mute);
+}
+
+.xs-steps li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.3s;
+}
+
+.xs-steps li span {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 11px;
+}
+
+.xs-steps li.done {
+  color: var(--teal);
+}
+
+.xs-steps li.on {
+  color: var(--line);
+}
+
+.xs-bar {
+  height: 2px;
+  margin-top: 10px;
+  background: rgb(227 238 246 / 0.12);
+}
+
+.xs-bar i {
+  display: block;
+  height: 100%;
+  background: var(--teal);
+  transform-origin: left;
+}
+
+.xs-caption {
+  margin: 8px 0 0;
+  font: 500 13px var(--font-body);
+  color: var(--mute);
+  animation: xs-caption 0.4s ease;
+}
+
+@keyframes xs-caption {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xs-caption {
+    animation: none;
+  }
+}
+
 /* Following the scroll: a tall track with the drawing pinned while it plays. */
 .xs[data-live='true'] .xs-track {
   height: 600vh;
@@ -162,6 +259,21 @@
 
   .xs-one {
     font-size: 16px;
+  }
+
+  .xs-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .xs-steps {
+    padding: 8px 12px 10px;
+  }
+
+  .xs-steps ol {
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 14px;
   }
 
   .xs-cap {

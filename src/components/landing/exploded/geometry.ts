@@ -2,7 +2,7 @@
 // Coordinates are SVG user units in the layout's viewBox.
 
 import { LAYERS, type Layer } from './layers';
-import { lerp, phases } from './timeline';
+import { clamp, lerp, phases } from './timeline';
 
 /** How visible an unused part is. */
 export const DIM = 0.5;
@@ -30,6 +30,8 @@ export interface Layout {
   connInset: number;
   /** x where callout text starts, or null to leave callouts out of the drawing. */
   calloutX: number | null;
+  /** Which side of the closed stack the layer names sit on. */
+  tagSide: 'left' | 'right';
 }
 
 /** The approved desktop drawing. */
@@ -50,6 +52,7 @@ export const WIDE: Layout = {
   faceMax: 22,
   connInset: 14,
   calloutX: 0,
+  tagSide: 'left',
 };
 
 /** Phones and small tablets: smaller slabs, callouts listed under the drawing. */
@@ -70,6 +73,9 @@ export const NARROW: Layout = {
   faceMax: 16,
   connInset: 10,
   calloutX: null,
+  // The left margin is too narrow for the names. The right one stays empty until the
+  // alternatives slide out.
+  tagSide: 'right',
 };
 
 /** One slab, solid or outlined. */
@@ -92,6 +98,8 @@ export interface LayerFrame {
   main: Part;
   /** Its alternatives, with the opacity they slide out at. */
   alts: (Part & { opacity: number })[];
+  /** Name tag beside the closed stack, so it reads as layers before it opens. */
+  tag: { x: number; y: number; opacity: number };
   /** Leader line and callout, when the layout draws them. */
   leader: { x: number; y: number; textX: number; dash: number; opacity: number } | null;
   /** Dashed line from the slab toward its alternatives. */
@@ -150,6 +158,13 @@ export function frame(p: number, L: Layout): LayerFrame[] {
         }
       : { label: layer.label, cx: L.cx, cy, w: L.w, t: L.t, ghost: 0, cap: 1 };
 
+    // Gone well before the leader lines start drawing.
+    const tag = {
+      x: L.tagSide === 'left' ? L.cx - L.w - 10 : L.cx + L.w + 10,
+      y: cy + L.t / 2,
+      opacity: 1 - clamp(ph.explode * 3),
+    };
+
     let leader: LayerFrame['leader'] = null;
     if (L.calloutX !== null) {
       const x = L.cx - L.w;
@@ -179,6 +194,7 @@ export function frame(p: number, L: Layout): LayerFrame[] {
       layer,
       main,
       alts,
+      tag,
       leader,
       connector,
       crate: swaps && ph.plug > 0.5 ? layer.swap!.crate : layer.crate,

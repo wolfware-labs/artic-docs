@@ -58,6 +58,13 @@ test.describe('proofs', () => {
     await expect(page.locator('#proofs .speech')).toHaveText('"Sign in, button"');
   });
 
+  test('the focused row lines up with its siblings', async ({ page }) => {
+    const lefts = await page
+      .locator('#proofs .tree .nodes > div > span:first-child')
+      .evaluateAll((spans) => spans.map((s) => Math.round(s.getBoundingClientRect().left)));
+    expect(new Set(lefts).size).toBe(1);
+  });
+
   test('makes no zero-pixel claim', async ({ page }) => {
     await expect(page.locator('#proofs')).not.toContainText(/\b0\s?px\b/i);
   });
