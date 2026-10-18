@@ -84,7 +84,7 @@ then pushes `docker.io/wolfware/artic-site` with these tags:
 | Tag | When | Who uses it |
 | --- | --- | --- |
 | `<run number>` | Every deploy | The cluster, which picks up new images from Docker Hub. |
-| `site-<version>` | HEAD has a release tag | People. |
+| `site-<version>` | HEAD has a release tag and the run is a push | People. |
 
 There is no `latest` tag.
 
@@ -94,7 +94,7 @@ There is no `latest` tag.
 | --- | --- | --- |
 | `DOCKERHUB_USERNAME` | Variable | Docker Hub login. |
 | `DOCKERHUB_TOKEN` | Secret | Docker Hub login. |
-| `PUBLIC_DOCSEARCH_APP_ID`, `PUBLIC_DOCSEARCH_API_KEY`, `PUBLIC_DOCSEARCH_INDEX`, `PUBLIC_MAILERLITE_ACTION` | Variables, optional | Build-time values from the table above. |
+| `PUBLIC_DOCSEARCH_APP_ID`, `PUBLIC_DOCSEARCH_API_KEY`, `PUBLIC_DOCSEARCH_INDEX`, `PUBLIC_MAILERLITE_ACTION` | Variables, optional | Build-time values, see the Environment variables table. |
 
 Turn on Settings > Actions > General > "Allow GitHub Actions to create and approve pull
 requests". The archive workflow opens its pull request with the workflow token. Pull

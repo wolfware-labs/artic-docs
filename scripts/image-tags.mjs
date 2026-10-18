@@ -6,9 +6,12 @@ if (!repo) {
   console.error('IMAGE_REPO is not set');
   process.exit(1);
 }
-const headTags = execFileSync('git', ['tag', '--points-at', 'HEAD'], { encoding: 'utf8' })
-  .split('\n')
-  .filter(Boolean);
+const headTags =
+  process.env.RELEASE_TAGS === 'true'
+    ? execFileSync('git', ['tag', '--points-at', 'HEAD'], { encoding: 'utf8' })
+        .split('\n')
+        .filter(Boolean)
+    : [];
 
 try {
   console.log(imageTags({ repo, runNumber: process.env.RUN_NUMBER, headTags }).join('\n'));

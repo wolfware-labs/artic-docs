@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   archive:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -42,6 +43,7 @@ jobs:
         with:
           token: ${{ github.token }}
           sign-commits: true
+          base: main
           branch: docs/archive-${{ steps.archive.outputs.slug }}
           title: "docs: archive the ${{ steps.archive.outputs.slug }} docs"
           commit-message: "docs: archive the ${{ steps.archive.outputs.slug }} docs"

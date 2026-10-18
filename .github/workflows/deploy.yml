@@ -60,10 +60,17 @@ jobs:
       - run: bash scripts/smoke-image.sh artic-site:ci
       - name: Push the tested image
         run: |
-          node scripts/image-tags.mjs | while read -r ref; do
+          refs="$(node scripts/image-tags.mjs)"
+          if [ -z "$refs" ]; then
+            echo "no image tags produced" >&2
+            exit 1
+          fi
+          while read -r ref; do
             docker tag artic-site:ci "$ref"
             docker push "$ref"
-          done
+          done <<< "$refs"
         env:
+          # Nightly and manual runs rebuild the release commit, so only the push that made it moves site-<version>.
+          RELEASE_TAGS: ${{ github.event_name == 'push' && 'true' || '' }}
           IMAGE_REPO: docker.io/wolfware/artic-site
           RUN_NUMBER: ${{ github.run_number }}
