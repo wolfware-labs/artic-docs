@@ -88,18 +88,6 @@ then pushes `docker.io/wolfware/artic-site` with these tags:
 
 There is no `latest` tag.
 
-### Repo settings
-
-| Setting | Kind | Used for |
-| --- | --- | --- |
-| `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` | Secrets, set for the whole wolfware-labs org | Docker Hub login. |
-| `PUBLIC_DOCSEARCH_APP_ID`, `PUBLIC_DOCSEARCH_API_KEY`, `PUBLIC_DOCSEARCH_INDEX`, `PUBLIC_MAILERLITE_ACTION` | Variables, optional | Build-time values, see the Environment variables table. |
-
-Turn on Settings > Actions > General > "Allow GitHub Actions to create and approve pull
-requests". The archive workflow opens its pull request with the workflow token. Pull
-requests opened that way don't trigger `ci.yml`, so the workflow builds and tests the
-archive itself.
-
 ### Archiving from a framework release
 
 The framework repo sends `framework-release` with the version in `client_payload`:
@@ -111,9 +99,10 @@ gh api repos/wolfware-labs/artic-docs/dispatches \
 ```
 
 The workflow archives the docs and opens a pull request titled
-`docs: archive the 0.2 docs`. A patch release of a line that is already archived, like
-0.1.1 after 0.1.0, does nothing. To run it by hand, start "Archive docs" from the
-Actions tab and enter the version.
+`docs: archive the 0.2 docs`. Pull requests opened with the workflow token don't trigger
+`ci.yml`, so the workflow builds and tests the archive itself. A patch release of a line
+that is already archived, like 0.1.1 after 0.1.0, does nothing. To run it by hand, start
+"Archive docs" from the Actions tab and enter the version.
 
 ### Checking the image locally
 
