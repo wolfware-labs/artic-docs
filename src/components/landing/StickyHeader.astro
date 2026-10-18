@@ -1,0 +1,190 @@
+---
+const sections = [
+  { id: 'how-it-works', label: 'How it works' },
+  { id: 'get-started', label: 'Get started' },
+  { id: 'proofs', label: 'Proofs' },
+  { id: 'roadmap', label: 'Roadmap' },
+];
+---
+
+<header class="bar" data-shown="false" inert aria-label="Page">
+  <div class="container inner">
+    <a class="brand" href="#top" aria-label="artic, back to top">
+      <img src="/brand/artic-logo.png" alt="" width="28" height="28" />
+      <span>artic</span>
+    </a>
+    <nav class="sections" aria-label="Sections">
+      <ul>
+        {
+          sections.map((s) => (
+            <li>
+              <a href={`#${s.id}`} data-section={s.id}>
+                {s.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="end">
+      <a class="link" href="/docs/">Docs</a>
+      <a class="link" href="https://github.com/wolfware-labs/artic">GitHub</a>
+      <a class="cta" href="#get-started">Get started</a>
+    </div>
+  </div>
+</header>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('header.bar');
+  const heroNav = document.querySelector('.hero .nav');
+
+  if (bar && heroNav) {
+    const show = (on: boolean) => {
+      bar.dataset.shown = String(on);
+      bar.inert = !on;
+    };
+    // The bar takes over once the hero's own nav has scrolled out of view.
+    new IntersectionObserver(([entry]) => show(!entry.isIntersecting)).observe(heroNav);
+
+    const links = new Map<string, HTMLElement>();
+    bar.querySelectorAll<HTMLElement>('[data-section]').forEach((a) => links.set(a.dataset.section!, a));
+
+    // A section counts as current while it crosses a thin band just under the bar.
+    const current = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const link = links.get(e.target.id);
+          if (!link) continue;
+          if (e.isIntersecting) {
+            links.forEach((l) => l.removeAttribute('aria-current'));
+            link.setAttribute('aria-current', 'true');
+          } else if (link.hasAttribute('aria-current')) {
+            link.removeAttribute('aria-current');
+          }
+        }
+      },
+      { rootMargin: '-72px 0px -70% 0px' },
+    );
+    links.forEach((_, id) => {
+      const section = document.getElementById(id);
+      if (section) current.observe(section);
+    });
+  }
+</script>
+
+<style>
+  .bar {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    height: var(--header-h);
+    background: rgb(15 27 38 / 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid rgb(108 195 192 / 0.14);
+    box-shadow: 0 10px 30px -18px rgb(0 0 0 / 0.8);
+    transform: translateY(-100%);
+    opacity: 0;
+    transition:
+      transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1),
+      opacity 0.2s ease;
+  }
+  .bar[data-shown='true'] {
+    transform: none;
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar {
+      transition: none;
+    }
+  }
+  .inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--line);
+    font: 700 20px/1 var(--font-display);
+    letter-spacing: 0.5px;
+  }
+  .brand img {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+  .sections {
+    margin-right: auto;
+  }
+  .sections ul {
+    display: flex;
+    gap: 22px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .sections a {
+    position: relative;
+    display: block;
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--mute);
+    transition: color 0.2s;
+  }
+  /* The underline grows in on the section being read. */
+  .sections a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--teal);
+    transform: scaleX(0);
+    transition: transform 0.25s ease;
+  }
+  .sections a:hover,
+  .sections a[aria-current] {
+    color: var(--line);
+  }
+  .sections a[aria-current]::after {
+    transform: scaleX(1);
+  }
+  .end {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 14px;
+  }
+  .link {
+    color: var(--mute);
+  }
+  .link:hover {
+    color: var(--line);
+  }
+  .cta {
+    padding: 7px 14px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--teal), var(--steel));
+    color: #06121c;
+    font-weight: 600;
+  }
+  @media (max-width: 900px) {
+    .sections,
+    .link {
+      display: none;
+    }
+    .end {
+      margin-left: auto;
+    }
+  }
+</style>

@@ -3,6 +3,7 @@ import '../styles/landing.css';
 import Nav from '../components/landing/Nav.astro';
 import Hero from '../components/landing/Hero.astro';
 import Footer from '../components/landing/Footer.astro';
+import StickyHeader from '../components/landing/StickyHeader.astro';
 
 interface Props {
   title?: string;
@@ -25,7 +26,8 @@ const {
     <link rel="icon" type="image/png" href="/brand/artic-logo.png" />
     <title>{title}</title>
   </head>
-  <body>
+  <body id="top">
+    <StickyHeader />
     <Hero>
       <Nav slot="nav" />
     </Hero>

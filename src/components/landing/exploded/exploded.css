@@ -117,6 +117,8 @@
 
 .xs[data-live='true'] .xs-wrap {
   height: 100%;
+  /* Keep the headline clear of the sticky header while the stage is pinned. */
+  padding-top: calc(var(--header-h, 0px) + 24px);
 }
 
 .xs[data-live='true'] .xs-drawing {

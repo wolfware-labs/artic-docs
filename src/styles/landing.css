@@ -18,6 +18,9 @@
 html {
   scroll-behavior: smooth;
   color-scheme: dark;
+  /* Height of the sticky header; anchors land just below it. */
+  --header-h: 60px;
+  scroll-padding-top: var(--header-h);
 }
 
 @media (prefers-reduced-motion: reduce) {
