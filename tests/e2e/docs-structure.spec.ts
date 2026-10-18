@@ -58,6 +58,19 @@ test('outline pages are marked as coming with artic 0.1', async ({ page }) => {
   await expect(page.locator('.outline')).toContainText('Coming with artic 0.1');
 });
 
+test('an outline with no headings leaves out the lead and the list', async ({ page }) => {
+  await page.goto('/docs/start-here/examples/');
+  await expect(page.locator('.outline')).toContainText('Coming with artic 0.1');
+  await expect(page.locator('.outline .outline-lead')).toHaveCount(0);
+  await expect(page.locator('.outline ul')).toHaveCount(0);
+});
+
+test('an outline with headings keeps the lead and the list', async ({ page }) => {
+  await page.goto('/docs/guides/bind-a-list/');
+  await expect(page.locator('.outline .outline-lead')).toHaveText('This page will cover:');
+  await expect(page.locator('.outline ul li').first()).toBeVisible();
+});
+
 test('reference links to the Rust API repository', async ({ page }) => {
   await page.goto('/docs/reference/controls/');
   await expect(

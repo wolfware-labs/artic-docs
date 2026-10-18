@@ -9,10 +9,16 @@ const { purpose, headings } = Astro.props;
 <section class="outline">
   <p class="outline-status">Coming with artic 0.1</p>
   <p class="outline-purpose">{purpose}</p>
-  <p class="outline-lead">This page will cover:</p>
-  <ul>
-    {headings.map((h) => <li>{h}</li>)}
-  </ul>
+  {
+    headings.length > 0 && (
+      <>
+        <p class="outline-lead">This page will cover:</p>
+        <ul>
+          {headings.map((h) => <li>{h}</li>)}
+        </ul>
+      </>
+    )
+  }
 </section>
 
 <style>
@@ -32,6 +38,9 @@ const { purpose, headings } = Astro.props;
   .outline-purpose {
     margin: 0 0 0.75rem;
     color: var(--line);
+  }
+  .outline-purpose:last-child {
+    margin-bottom: 0;
   }
   .outline-lead {
     margin: 0 0 0.25rem;
