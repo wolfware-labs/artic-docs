@@ -256,7 +256,8 @@ const tabs = [
 
   .gs .result {
     position: sticky;
-    top: 40px;
+    /* Pin below the sticky page header so the tabs stay in view. */
+    top: calc(var(--header-h, 0px) + 24px);
   }
   .gs [hidden] {
     display: none !important;
@@ -270,6 +271,8 @@ const tabs = [
   .gs .tabs {
     display: flex;
     overflow-x: auto;
+    /* The buttons' -1px margin would otherwise get a 1px vertical scrollbar. */
+    overflow-y: hidden;
     border-bottom: 1px solid var(--edge);
   }
   .gs .tabs button {
