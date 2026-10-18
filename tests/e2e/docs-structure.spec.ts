@@ -18,6 +18,7 @@ const pages = [
   '/docs/reference/controls/',
   '/docs/reference/markup-extensions/',
   '/docs/reference/cli/',
+  '/docs/contributing/architecture/',
 ];
 
 for (const path of pages) {
@@ -35,12 +36,13 @@ test('sidebar groups appear in order', async ({ page }) => {
   const labels = await page
     .locator('nav.sidebar ul.top-level > li > details > summary .large')
     .allTextContents();
-  expect(labels.map((l) => l.trim()).slice(0, 5)).toEqual([
+  expect(labels.map((l) => l.trim()).slice(0, 6)).toEqual([
     'Start here',
     'Tutorial',
     'Guides',
     'Concepts',
     'Reference',
+    'Contributing',
   ]);
 });
 

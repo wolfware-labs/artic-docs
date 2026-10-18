@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import starlight from '@astrojs/starlight';
+import starlightLinksValidator from 'starlight-links-validator';
 
 export default defineConfig({
   site: 'https://artic.rs',
@@ -8,6 +9,10 @@ export default defineConfig({
     react(),
     starlight({
       title: 'artic',
+      plugins: [
+        // The landing page lives outside Starlight, so its anchors can't be validated.
+        starlightLinksValidator({ exclude: ['/', '/#*'] }),
+      ],
       components: { Banner: './src/components/docs/PrereleaseBanner.astro' },
       sidebar: [
         {
@@ -46,6 +51,10 @@ export default defineConfig({
             'docs/reference/markup-extensions',
             'docs/reference/cli',
           ],
+        },
+        {
+          label: 'Contributing',
+          items: [{ autogenerate: { directory: 'docs/contributing' } }],
         },
       ],
       customCss: ['./src/styles/tokens.css', './src/styles/starlight.css'],
