@@ -6,6 +6,9 @@ import { clamp, STATIC_PROGRESS, step } from './timeline';
 
 const NARROW_QUERY = '(max-width: 899.98px)';
 const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
+// Too short to pin the stage and still leave the drawing readable (phones in landscape,
+// short laptop windows). The page scrolls past the static drawing instead.
+const SHORT_QUERY = '(max-height: 659.98px)';
 
 type Faces = { id: string; colors: readonly string[] };
 
@@ -199,8 +202,8 @@ type Mode = 'both' | 'wide' | 'narrow';
 
 export default function ExplodedStack() {
   const track = useRef<HTMLDivElement>(null);
-  // Until the island runs, and whenever motion is reduced, show the drawing with
-  // everything out, before the swap.
+  // Until the island runs, when motion is reduced and on short screens, show the drawing
+  // with everything out, before the swap.
   const [shown, setShown] = useState(STATIC_PROGRESS);
   const [live, setLive] = useState(false);
   // Server output carries both layouts and lets CSS pick; once running, draw only one.
@@ -209,16 +212,16 @@ export default function ExplodedStack() {
   useEffect(() => {
     const narrow = matchMedia(NARROW_QUERY);
     const reduce = matchMedia(REDUCE_QUERY);
+    const short = matchMedia(SHORT_QUERY);
+    const queries = [narrow, reduce, short];
     const sync = () => {
       setMode(narrow.matches ? 'narrow' : 'wide');
-      setLive(!reduce.matches);
+      setLive(!reduce.matches && !short.matches);
     };
     sync();
-    narrow.addEventListener('change', sync);
-    reduce.addEventListener('change', sync);
+    for (const q of queries) q.addEventListener('change', sync);
     return () => {
-      narrow.removeEventListener('change', sync);
-      reduce.removeEventListener('change', sync);
+      for (const q of queries) q.removeEventListener('change', sync);
     };
   }, []);
 

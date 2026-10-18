@@ -100,3 +100,50 @@ test.describe('exploded stack at 375px', () => {
     await expect(root.locator('.xs-wide')).toHaveCount(0);
   });
 });
+
+// A pinned stage on a short screen leaves the drawing whatever height is left over.
+for (const [width, height] of [
+  [812, 375],
+  [375, 560],
+  [375, 640],
+  [900, 500],
+]) {
+  test.describe(`exploded stack on a short ${width}x${height} screen`, () => {
+    test.use({ viewport: { width, height } });
+
+    test('keeps the drawing and its labels readable', async ({ page }) => {
+      await page.goto('/');
+      await page.locator('#how-it-works').scrollIntoViewIfNeeded();
+      await expect(page.locator('#how-it-works astro-island:not([ssr])')).toHaveCount(1);
+      await scrollTrackTo(page, 0.72);
+      await expect(island(page)).toHaveAttribute('data-progress', '0.72');
+
+      const { drawing, smallest } = await page.evaluate(() => {
+        const root = document.querySelector('#how-it-works .xs') as HTMLElement;
+        const svg = [...root.querySelectorAll<SVGSVGElement>('svg.xs-drawing')].find(
+          (s) => s.getBoundingClientRect().width > 0,
+        )!;
+        const shown = (el: Element) => {
+          for (let e: Element | null = el; e && e !== root; e = e.parentElement) {
+            const cs = getComputedStyle(e);
+            if (cs.display === 'none' || +cs.opacity < 0.3) return false;
+          }
+          return true;
+        };
+        const labels = [
+          ...svg.querySelectorAll('text:not(.xs-face)'),
+          ...[...root.querySelectorAll('.xs-callouts li *')].filter(
+            (e) => e.children.length === 0 && e.textContent?.trim(),
+          ),
+        ].filter(shown);
+        return {
+          drawing: svg.getBoundingClientRect().height,
+          smallest: Math.min(...labels.map((l) => l.getBoundingClientRect().height)),
+        };
+      });
+      expect(drawing).toBeGreaterThanOrEqual(260);
+      expect(smallest).toBeGreaterThanOrEqual(11);
+      await expectNoHorizontalScroll(page);
+    });
+  });
+}

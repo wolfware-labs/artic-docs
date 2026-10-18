@@ -1,5 +1,5 @@
-/* The exploded stack. Static by default (no JS yet, or reduced motion); the island sets
-   data-live once it can follow the scroll. */
+/* The exploded stack. Static by default (no JS yet, reduced motion, or a screen too short
+   to pin it); the island sets data-live once it can follow the scroll. */
 
 .xs-track {
   position: relative;
