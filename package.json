@@ -8,6 +8,7 @@
     "prebuild": "node scripts/sync-contributor-docs.mjs",
     "build": "astro build",
     "preview": "astro preview",
+    "release": "semantic-release",
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test && pnpm test:e2e:newsletter",
     "test:e2e:newsletter": "E2E_NEWSLETTER=1 playwright test"
@@ -16,6 +17,7 @@
     "@playwright/test": "1.64.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "semantic-release": "25.0.9",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5"
   },
