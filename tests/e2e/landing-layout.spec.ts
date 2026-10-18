@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { expectNoHorizontalScroll } from './helpers';
 
-for (const width of [1600, 375]) {
+for (const width of [1600, 1024, 920, 375]) {
   test.describe(`landing at ${width}px`, () => {
     test.use({ viewport: { width, height: 900 } });
 
@@ -11,6 +11,15 @@ for (const width of [1600, 375]) {
 
     test('has no horizontal scroll', async ({ page }) => {
       await expectNoHorizontalScroll(page);
+    });
+
+    test('hero holds its content without overflow', async ({ page }) => {
+      const fits = await page
+        .locator('.hero .container')
+        .evaluate((el) => el.scrollWidth <= el.clientWidth);
+      expect(fits).toBe(true);
+      const copy = await page.locator('.hero h1').evaluate((el) => el.getBoundingClientRect().width);
+      expect(copy).toBeGreaterThan(280);
     });
 
     test('content columns stay within 1120px', async ({ page }) => {

@@ -31,7 +31,6 @@ body {
   color: var(--line);
   font-family: var(--font-body);
   line-height: 1.5;
-  overflow-x: clip;
 }
 
 a {
