@@ -7,7 +7,9 @@ import { clamp, STATIC_PROGRESS, step } from './timeline';
 const NARROW_QUERY = '(max-width: 899.98px)';
 const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
 // Too short to pin the stage and still leave the drawing readable (phones in landscape,
-// short laptop windows). The page scrolls past the static drawing instead.
+// short laptop windows). The page scrolls past the static drawing instead. Checked on load
+// and when the width changes, not on every height change: a mobile URL bar that shows or
+// hides mid-scroll would otherwise add or remove the tall track and make the page jump.
 const SHORT_QUERY = '(max-height: 659.98px)';
 
 type Faces = { id: string; colors: readonly string[] };
@@ -212,16 +214,25 @@ export default function ExplodedStack() {
   useEffect(() => {
     const narrow = matchMedia(NARROW_QUERY);
     const reduce = matchMedia(REDUCE_QUERY);
-    const short = matchMedia(SHORT_QUERY);
-    const queries = [narrow, reduce, short];
+    const queries = [narrow, reduce];
+    let short = matchMedia(SHORT_QUERY).matches;
+    let width = innerWidth;
     const sync = () => {
       setMode(narrow.matches ? 'narrow' : 'wide');
-      setLive(!reduce.matches && !short.matches);
+      setLive(!reduce.matches && !short);
+    };
+    const onResize = () => {
+      if (innerWidth === width) return;
+      width = innerWidth;
+      short = matchMedia(SHORT_QUERY).matches;
+      sync();
     };
     sync();
     for (const q of queries) q.addEventListener('change', sync);
+    addEventListener('resize', onResize);
     return () => {
       for (const q of queries) q.removeEventListener('change', sync);
+      removeEventListener('resize', onResize);
     };
   }, []);
 

@@ -101,6 +101,37 @@ test.describe('exploded stack at 375px', () => {
   });
 });
 
+// Mobile URL bars change the viewport height mid-scroll. Crossing the short-screen line
+// that way must not add or remove the tall track, or the page jumps.
+test.describe('exploded stack when only the height changes', () => {
+  test('stays live when the height drops below 660px', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 700 });
+    await goLive(page);
+    await scrollTrackTo(page, 0.3);
+    await page.setViewportSize({ width: 375, height: 620 });
+    await page.waitForTimeout(300);
+    await expect(island(page)).toHaveAttribute('data-live', 'true');
+  });
+
+  test('stays static when the height grows past 660px', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 620 });
+    await page.goto('/');
+    await page.locator('#how-it-works').scrollIntoViewIfNeeded();
+    await expect(page.locator('#how-it-works astro-island:not([ssr])')).toHaveCount(1);
+    await expect(island(page)).toHaveAttribute('data-live', 'false');
+    await page.setViewportSize({ width: 375, height: 700 });
+    await page.waitForTimeout(300);
+    await expect(island(page)).toHaveAttribute('data-live', 'false');
+  });
+
+  test('decides again when the width changes', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 1000 });
+    await goLive(page);
+    await page.setViewportSize({ width: 1200, height: 600 });
+    await expect(island(page)).toHaveAttribute('data-live', 'false');
+  });
+});
+
 // A pinned stage on a short screen leaves the drawing whatever height is left over.
 for (const [width, height] of [
   [812, 375],
