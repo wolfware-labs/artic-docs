@@ -1,0 +1,89 @@
+---
+const columns = [
+  {
+    title: 'Learn',
+    links: [
+      { label: 'Getting started', href: '/docs/start-here/install/' },
+      { label: 'Tutorial', href: '/docs/tutorial/' },
+      { label: 'Examples', href: '/docs/start-here/examples/' },
+    ],
+  },
+  {
+    title: 'Reference',
+    links: [
+      { label: 'XAML controls', href: '/docs/reference/controls/' },
+      { label: 'Rust API', href: 'https://github.com/wolfware-labs/artic' },
+      { label: 'Architecture', href: '/docs/contributing/architecture/' },
+    ],
+  },
+  {
+    title: 'Project',
+    links: [
+      { label: 'GitHub', href: 'https://github.com/wolfware-labs/artic' },
+      { label: 'Contributing', href: '/docs/contributing/architecture/' },
+    ],
+  },
+];
+---
+
+<footer>
+  <div class="container wrap">
+    <div class="brand">
+      <img src="/brand/artic-logo.png" alt="" width="44" height="44" />
+      <div>
+        <b>artic</b>
+        <small>A cross-platform UI framework for Rust. Built by Wolfware.</small>
+      </div>
+    </div>
+    {
+      columns.map((c) => (
+        <div>
+          <h2>{c.title}</h2>
+          <ul>
+            {c.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+          </ul>
+        </div>
+      ))
+    }
+    <div class="legal">
+      <span>MIT or Apache-2.0, at your option.</span>
+      <span>© 2026 Wolfware</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer {
+    border-top: 1px solid var(--edge);
+    padding: 40px 0 56px;
+    margin-top: 56px;
+  }
+  .wrap {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 32px;
+  }
+  .brand { display: flex; gap: 12px; align-items: flex-start; }
+  .brand img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
+  .brand b { display: block; font: 700 22px var(--font-display); }
+  .brand small { display: block; max-width: 28ch; margin-top: 4px; font-size: 14px; line-height: 1.5; color: var(--mute); }
+  h2 { margin: 4px 0 12px; font: 600 14px var(--font-body); color: var(--mute); }
+  ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  a { color: var(--line); text-decoration: none; font-size: 15px; }
+  a:hover { color: var(--teal); }
+  .legal {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 24px;
+    border-top: 1px solid var(--edge);
+    font-size: 14px;
+    color: var(--mute);
+  }
+  @media (max-width: 760px) {
+    .wrap { grid-template-columns: 1fr 1fr; }
+    .brand { grid-column: 1 / -1; }
+  }
+</style>

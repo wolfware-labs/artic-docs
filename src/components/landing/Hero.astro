@@ -1,0 +1,162 @@
+---
+import IceBackground from './IceBackground.astro';
+---
+
+<header class="hero">
+  <IceBackground />
+  <div class="container">
+    <slot name="nav" />
+    <div class="body">
+      <div class="copy">
+        <h1><span class="sr-only">artic: </span>Write the UI.<br />Rust does the rest.</h1>
+        <p class="sub">
+          Views in XAML, logic in Rust, one GPU renderer that draws the same pixels on Windows,
+          macOS, Linux, iOS and Android.
+        </p>
+        <div class="btns">
+          <a class="btn primary" href="#get-started">Get started</a>
+          <a class="btn ghost" href="#how-it-works">How it works</a>
+        </div>
+      </div>
+      <div class="demo" aria-label="A XAML sign-in form and the window it renders">
+        <pre class="code"><code><span class="t">&lt;StackPanel</span> <span class="a">Spacing</span>=<span class="s">"8"</span> <span class="a">Margin</span>=<span class="s">"16"</span><span class="t">&gt;</span>
+  <span class="t">&lt;TextBox</span> <span class="a">Text</span>=<span class="s">"{'{'}Binding Email, Mode=TwoWay{'}'}"</span>
+           <span class="a">Placeholder</span>=<span class="s">"Email"</span><span class="t">/&gt;</span>
+  <span class="t">&lt;Button</span> <span class="a">Classes</span>=<span class="s">"primary"</span> <span class="a">Content</span>=<span class="s">"Sign in"</span>
+          <span class="a">Command</span>=<span class="s">"{'{'}Binding SignIn{'}'}"</span><span class="t">/&gt;</span>
+<span class="t">&lt;/StackPanel&gt;</span></code></pre>
+        <div class="win" aria-hidden="true">
+          <div class="bar"><i></i><i></i><i></i></div>
+          <div class="field">you@example.com</div>
+          <div class="pbtn">Sign in</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(120% 90% at 70% 10%, #1d3550 0%, var(--bg) 60%);
+    padding: 34px 0 72px;
+  }
+  .container {
+    position: relative;
+  }
+  .body {
+    display: flex;
+    gap: 56px;
+    align-items: center;
+    margin-top: 64px;
+  }
+  .copy {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  h1 {
+    margin: 0 0 14px;
+    font: 700 56px/1.05 var(--font-display);
+    letter-spacing: -0.5px;
+    color: var(--line);
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .sub {
+    margin: 0 0 28px;
+    max-width: 440px;
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--mute);
+  }
+  .btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .btn {
+    display: inline-block;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font: 600 16px/1 var(--font-body);
+    text-decoration: none;
+  }
+  .primary {
+    background: linear-gradient(135deg, var(--teal), var(--steel));
+    color: #06121c;
+  }
+  .ghost {
+    border: 1px solid #2c4660;
+    color: var(--line);
+  }
+  .ghost:hover {
+    border-color: var(--teal);
+  }
+  .demo {
+    position: relative;
+    flex: 0 0 500px;
+    height: 290px;
+    max-width: 100%;
+  }
+  .code {
+    margin: 0;
+    padding: 16px;
+    background: var(--panel);
+    border: 1px solid #23394d;
+    border-radius: 10px;
+    font: 400 12.5px/1.6 var(--font-mono);
+    color: #c9dbe8;
+    overflow: hidden;
+  }
+  .code code {
+    font: inherit;
+  }
+  .t { color: var(--peri); }
+  .a { color: var(--teal); }
+  .s { color: #e6c07b; }
+  .win {
+    position: absolute;
+    right: -10px;
+    top: 170px;
+    width: 230px;
+    padding: 12px;
+    background: #f4f8fb;
+    color: #18293a;
+    border-radius: 8px;
+    box-shadow: 0 20px 40px #0008;
+  }
+  .bar { display: flex; gap: 4px; margin-bottom: 10px; }
+  .bar i { width: 8px; height: 8px; border-radius: 50%; background: #cfd9e2; }
+  .field {
+    border: 1px solid #c9d6e1;
+    border-radius: 5px;
+    padding: 7px 9px;
+    margin-bottom: 7px;
+    background: #fff;
+    font-size: 12px;
+    color: #5c7184;
+  }
+  .pbtn {
+    padding: 7px;
+    border-radius: 5px;
+    background: var(--steel);
+    color: #fff;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .body { flex-direction: column; align-items: stretch; gap: 40px; margin-top: 40px; }
+    h1 { font-size: 44px; }
+    .demo { flex: none; width: 100%; height: auto; padding-bottom: 130px; }
+    .code { overflow-x: auto; }
+    .win { right: 8px; top: auto; bottom: 0; }
+  }
+</style>

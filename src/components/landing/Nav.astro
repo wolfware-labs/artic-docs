@@ -1,0 +1,63 @@
+---
+const links = [
+  { label: 'Docs', href: '/docs/' },
+  { label: 'Examples', href: '/docs/start-here/examples/' },
+  { label: 'GitHub', href: 'https://github.com/wolfware-labs/artic' },
+];
+---
+
+<nav class="nav" aria-label="Main">
+  <a class="brand" href="/">
+    <img src="/brand/artic-logo.png" alt="" width="52" height="40" />
+    <span>artic</span>
+  </a>
+  <ul>
+    {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+  </ul>
+</nav>
+
+<style>
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-size: 15px;
+    color: var(--mute);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: auto;
+    text-decoration: none;
+    color: var(--line);
+    font: 700 24px/1 var(--font-display);
+    letter-spacing: 0.5px;
+  }
+  /* The source PNG has a navy background; crop in so the wolf reads at nav size. */
+  .brand img {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    object-position: 50% 45%;
+    transform-origin: center;
+    border-radius: 8px;
+  }
+  ul {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  a {
+    text-decoration: none;
+  }
+  ul a {
+    color: var(--mute);
+    padding: 4px 2px;
+  }
+  ul a:hover {
+    color: var(--line);
+  }
+</style>

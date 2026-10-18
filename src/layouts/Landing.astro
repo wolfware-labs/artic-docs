@@ -1,0 +1,37 @@
+---
+import '../styles/landing.css';
+import Nav from '../components/landing/Nav.astro';
+import Hero from '../components/landing/Hero.astro';
+import Footer from '../components/landing/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'artic: a cross-platform UI framework for Rust',
+  description = 'Views in XAML, logic in Rust, one GPU renderer that draws the same pixels on Windows, macOS, Linux, iOS and Android.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/brand/artic-logo.png" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <Hero>
+      <Nav slot="nav" />
+    </Hero>
+    <main>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
