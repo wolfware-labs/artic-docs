@@ -1,8 +1,7 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { afterAll, describe, expect, it } from 'vitest';
 
 const repo = resolve(__dirname, '../..');
@@ -28,6 +27,18 @@ describe('archive-version', () => {
       // A symlinked node_modules makes Vite treat every dependency as outside the project
       // root, which breaks Astro's style handling, so the install is copied instead.
       execFileSync('cp', ['-a', join(repo, 'node_modules'), join(work, 'node_modules')]);
+
+      // Start from a site with nothing archived, whatever the repo has archived by now.
+      writeFileSync(join(work, 'versions.json'), '[]\n');
+      for (const entry of readdirSync(join(work, 'src/content/docs'))) {
+        if (/^\d+\.\d+$/.test(entry)) rmSync(join(work, 'src/content/docs', entry), { recursive: true, force: true });
+      }
+      const versionData = join(work, 'src/content/versions');
+      if (existsSync(versionData)) {
+        for (const entry of readdirSync(versionData)) {
+          if (entry !== '.gitkeep') rmSync(join(versionData, entry), { recursive: true, force: true });
+        }
+      }
 
       execFileSync('node', ['scripts/archive-version.mjs', '0.1.0'], {
         cwd: work,
