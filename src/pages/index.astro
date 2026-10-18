@@ -1,5 +1,6 @@
 ---
 import Landing from '../layouts/Landing.astro';
+import GettingStarted from '../components/landing/GettingStarted.astro';
 import ExplodedStack from '../components/landing/exploded/ExplodedStack';
 ---
 
@@ -7,4 +8,5 @@ import ExplodedStack from '../components/landing/exploded/ExplodedStack';
   <section id="how-it-works" aria-labelledby="how-it-works-title">
     <ExplodedStack client:visible={{ rootMargin: '400px' }} />
   </section>
+  <GettingStarted />
 </Landing>
