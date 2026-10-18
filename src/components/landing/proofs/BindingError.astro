@@ -1,0 +1,96 @@
+---
+// The error text is built from the source line so the carets can never drift
+// away from the typo, whatever the line numbers or indentation turn into.
+const XAML_LINES = [
+  '<StackPanel Spacing="8">',
+  '  <TextBox Text="{Binding Emial, Mode=TwoWay}"/>',
+  '  <Button Content="Sign in" Command="{Binding SignIn}"/>',
+];
+const TYPO = 'Emial';
+const FIRST_LINE = 5;
+const badIndex = XAML_LINES.findIndex((l) => l.includes(TYPO));
+const badLine = XAML_LINES[badIndex];
+const badNo = FIRST_LINE + badIndex;
+const col = badLine.indexOf(TYPO);
+
+const gutter = `${badNo} |`;
+const pad = ' '.repeat(gutter.length - 1);
+const before = badLine.slice(0, col);
+const after = badLine.slice(col + TYPO.length);
+const caretPad = ' '.repeat(col);
+---
+
+<div class="panel bind mono">
+  <div class="editor" role="img" aria-label={`XAML on line ${badNo}: a TextBox bound to Emial`}>
+    <pre aria-hidden="true">{XAML_LINES.map((l, i) => (
+      <span class="row"><span class="ln">{FIRST_LINE + i}</span>{i === badIndex ? (
+        <><span class="t">{before}</span><span class="squig">{TYPO}</span><span class="t">{after}</span></>
+      ) : <span class="t">{l}</span>}{i < XAML_LINES.length - 1 ? '\n' : ''}</span>
+    ))}</pre>
+  </div>
+  <pre class="term" data-testid="compiler-error"><span class="b">$</span> cargo build
+<span class="e">error</span>: <b>`LoginVm` has no member `{TYPO}`</b>
+{' '}<span class="b">--&gt;</span> src/views/login.xaml:{badNo}:{col + 1}
+{pad}<span class="b">|</span>
+<span class="b">{gutter}</span> <span class="src">{badLine}</span>
+{pad}<span class="b">|</span> <span class="pad">{caretPad}</span><span class="e carets">{'^'.repeat(TYPO.length)}</span>
+{pad}<span class="b">|</span>
+{pad}<span class="b">=</span> <span class="h">help</span>: a member with a similar name exists: `Email`</pre>
+  <p class="sketch">Error format is a sketch until the XAML compiler ships.</p>
+</div>
+
+<style is:global>
+  .proofs .mono {
+    font: 500 13.5px / 1.7 var(--font-mono);
+    font-variant-ligatures: none;
+  }
+  .proofs .bind pre {
+    margin: 0;
+    font: inherit;
+    font-variant-ligatures: none;
+  }
+  .proofs .editor {
+    padding: 16px 18px;
+    color: #c9dbe8;
+    border-bottom: 1px solid var(--edge);
+    overflow-x: auto;
+  }
+  .proofs .editor .ln {
+    display: inline-block;
+    width: 22px;
+    color: #3f5a73;
+  }
+  .proofs .t {
+    color: var(--peri);
+  }
+  .proofs .squig {
+    color: #f08a8a;
+    text-decoration: underline wavy #f08a8a;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1.5px;
+  }
+  .proofs .term {
+    padding: 16px 18px;
+    color: #c9dbe8;
+    background: #08111a;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .proofs .term .e {
+    color: #f08a8a;
+    font-weight: 700;
+  }
+  .proofs .term .b {
+    color: #7f97ad;
+  }
+  .proofs .term .h {
+    color: var(--teal);
+  }
+  .proofs .sketch {
+    margin: 0;
+    padding: 8px 18px;
+    border-top: 1px solid var(--edge);
+    font: 500 12px var(--font-body);
+    color: var(--mute);
+  }
+</style>

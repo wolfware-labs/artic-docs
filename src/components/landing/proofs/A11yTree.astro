@@ -1,0 +1,107 @@
+---
+const rows = [
+  { prefix: '', role: 'Window', name: 'Sign in' },
+  { prefix: '└─ ', role: 'Group' },
+  { prefix: '   ├─ ', role: 'Label', name: 'Sign in' },
+  { prefix: '   ├─ ', role: 'TextInput', name: 'Email' },
+  { prefix: '   ├─ ', role: 'PasswordInput', name: 'Password' },
+  { prefix: '   └─ ', role: 'Button', name: 'Sign in', focused: true },
+];
+---
+
+<div class="panel a11y">
+  <div class="screen" aria-hidden="true">
+    <div class="ui">
+      <b>Sign in</b>
+      <div class="f">you@example.com</div>
+      <div class="f">••••••••</div>
+      <div class="p focus">Sign in</div>
+    </div>
+  </div>
+  <div class="tree mono">
+    <div class="nodes" role="list" aria-label="Accessibility tree">
+      {rows.map((r) => (
+        <div role="listitem" class={r.focused ? 'on' : undefined}><span class="g">{r.prefix}</span><span class="r">{r.role}</span>{r.name && <> <span class="n">"{r.name}"</span></>}{r.focused && <> <span class="g">focused</span></>}</div>
+      ))}
+    </div>
+    <p class="speech">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10l-4-3H2z" fill="#6cc3c0"/><path d="M11 5.5c1 .8 1 4.2 0 5M12.8 4c2 1.6 2 6.4 0 8" stroke="#6cc3c0" fill="none" stroke-width="1.3"/></svg>
+      <span>"Sign in, button"</span>
+    </p>
+  </div>
+</div>
+
+<style is:global>
+  .proofs .a11y {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: stretch;
+  }
+  .proofs .a11y .screen {
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .proofs .a11y .ui {
+    gap: 10px;
+    padding: 34px 30px;
+  }
+  .proofs .a11y .ui .f,
+  .proofs .a11y .ui .p {
+    height: 30px;
+    font-size: 12px;
+    line-height: 28px;
+  }
+  .proofs .a11y .ui .p {
+    line-height: 30px;
+  }
+  .proofs .focus {
+    outline: 2px solid var(--teal);
+    outline-offset: 3px;
+  }
+  .proofs .tree {
+    min-width: 0;
+    padding: 22px;
+    color: #c9dbe8;
+    overflow-x: auto;
+  }
+  .proofs .tree .nodes > div {
+    padding: 2px 0;
+    white-space: pre;
+  }
+  .proofs .tree .r {
+    color: var(--peri);
+  }
+  .proofs .tree .n {
+    color: #e6c07b;
+  }
+  .proofs .tree .g {
+    color: #5d7a94;
+  }
+  .proofs .tree .on {
+    margin: 0 -8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #123041;
+  }
+  .proofs .speech {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    margin: 14px 0 0;
+    padding: 7px 14px;
+    border: 1px solid #23506a;
+    border-radius: 18px;
+    background: #123041;
+    font: 500 14px var(--font-body);
+    color: var(--line);
+  }
+  .proofs .speech svg {
+    flex: none;
+  }
+  @media (max-width: 560px) {
+    .proofs .a11y {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

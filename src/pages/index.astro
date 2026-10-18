@@ -1,6 +1,7 @@
 ---
 import Landing from '../layouts/Landing.astro';
 import GettingStarted from '../components/landing/GettingStarted.astro';
+import Proofs from '../components/landing/Proofs.astro';
 import ExplodedStack from '../components/landing/exploded/ExplodedStack';
 ---
 
@@ -9,4 +10,5 @@ import ExplodedStack from '../components/landing/exploded/ExplodedStack';
     <ExplodedStack client:visible={{ rootMargin: '400px' }} />
   </section>
   <GettingStarted />
+  <Proofs />
 </Landing>

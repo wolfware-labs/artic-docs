@@ -1,0 +1,104 @@
+---
+import BindingError from './proofs/BindingError.astro';
+import SamePixels from './proofs/SamePixels.astro';
+import A11yTree from './proofs/A11yTree.astro';
+---
+
+<section id="proofs" class="proofs" aria-labelledby="proofs-title">
+  <div class="container">
+    <div class="intro">
+      <h2 id="proofs-title">Fewer surprises at runtime.</h2>
+      <p class="one">Three things artic checks or guarantees for you, so they don't show up as bugs later.</p>
+    </div>
+
+    <article class="proof">
+      <div class="claim">
+        <h3>A typo in a binding fails the build.</h3>
+        <p>Bindings compile to typed Rust against your view-model. A wrong name or type is a compiler error, not a blank text box in production.</p>
+        <a href="/docs/concepts/compiled-bindings/">How bindings work</a>
+      </div>
+      <div class="evidence"><BindingError /></div>
+    </article>
+
+    <article class="proof">
+      <div class="claim">
+        <h3>Every platform draws the same pixels.</h3>
+        <p>One GPU renderer draws everything. No native widgets, so a layout that works on your machine looks the same on every other one.</p>
+        <a href="/docs/concepts/host-and-renderer/">How the renderer works</a>
+      </div>
+      <div class="evidence"><SamePixels /></div>
+    </article>
+
+    <article class="proof">
+      <div class="claim">
+        <h3>Screen readers work out of the box.</h3>
+        <p>Every control publishes an accessibility node with its role, name and state. You get keyboard focus and screen-reader support without extra code.</p>
+        <a href="/docs/reference/controls/">Browse the controls</a>
+      </div>
+      <div class="evidence"><A11yTree /></div>
+    </article>
+  </div>
+</section>
+
+<style is:global>
+  .proofs {
+    padding: 88px 0 72px;
+  }
+  .proofs .intro {
+    padding-bottom: 24px;
+  }
+  .proofs h2 {
+    margin: 0 0 14px;
+    font: 700 clamp(34px, 4.2vw, 52px) / 1.02 var(--font-display);
+  }
+  .proofs .one {
+    margin: 0;
+    max-width: 46ch;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--mute);
+  }
+  .proofs .proof {
+    display: grid;
+    grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+    gap: 64px;
+    align-items: center;
+    padding: 56px 0;
+    border-top: 1px solid var(--edge);
+  }
+  .proofs .claim h3 {
+    margin: 0 0 10px;
+    font: 700 30px / 1.05 var(--font-display);
+  }
+  .proofs .claim p {
+    margin: 0 0 16px;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--mute);
+  }
+  .proofs .claim a {
+    border-bottom: 1px solid var(--teal);
+    font: 600 15px var(--font-body);
+    color: var(--line);
+    text-decoration: none;
+  }
+  .proofs .evidence {
+    min-width: 0;
+  }
+  .proofs .panel {
+    overflow: hidden;
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    background: var(--panel);
+  }
+  @media (max-width: 1100px) {
+    .proofs .proof {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+    .proofs .claim {
+      max-width: 60ch;
+    }
+  }
+</style>
