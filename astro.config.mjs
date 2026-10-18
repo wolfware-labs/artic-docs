@@ -49,6 +49,7 @@ export default defineConfig({
       // Starlight asks for /favicon.svg by default; point it at the logo the landing page uses.
       favicon: '/brand/artic-logo.png',
       plugins: starlightPlugins(),
+      routeMiddleware: './src/route-middleware.ts',
       // DocSearch replaces Pagefind, which would otherwise index the build for nothing.
       pagefind: !docsearch,
       components: {
