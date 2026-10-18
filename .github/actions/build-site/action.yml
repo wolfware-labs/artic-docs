@@ -1,0 +1,42 @@
+name: Build site
+description: Install dependencies and, optionally, build the static site.
+inputs:
+  build:
+    description: Set to "false" to install only.
+    default: "true"
+  github-token:
+    description: Token for the roadmap milestones request.
+    default: ""
+  docsearch-app-id:
+    description: Value for PUBLIC_DOCSEARCH_APP_ID.
+    default: ""
+  docsearch-api-key:
+    description: Value for PUBLIC_DOCSEARCH_API_KEY.
+    default: ""
+  docsearch-index:
+    description: Value for PUBLIC_DOCSEARCH_INDEX.
+    default: ""
+  mailerlite-action:
+    description: Value for PUBLIC_MAILERLITE_ACTION.
+    default: ""
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      with:
+        version: 9
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    - if: inputs.build == 'true'
+      run: pnpm build
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        PUBLIC_DOCSEARCH_APP_ID: ${{ inputs.docsearch-app-id }}
+        PUBLIC_DOCSEARCH_API_KEY: ${{ inputs.docsearch-api-key }}
+        PUBLIC_DOCSEARCH_INDEX: ${{ inputs.docsearch-index }}
+        PUBLIC_MAILERLITE_ACTION: ${{ inputs.mailerlite-action }}
