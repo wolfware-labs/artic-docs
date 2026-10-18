@@ -31,14 +31,13 @@ export async function readVersions(file) {
   return JSON.parse(await readFile(file, 'utf8'));
 }
 
-/** Adds the version's slug to the file unless it is already there. Returns the slug. */
+/** Adds the version's slug to the file unless it is already there. Returns the slug and whether the file changed. */
 export async function addVersion(file, frameworkVersion) {
   const slug = versionSlug(frameworkVersion);
   const versions = await readVersions(file);
-  if (!versions.includes(slug)) {
-    versions.push(slug);
-    versions.sort(compareSlugs);
-    await writeFile(file, `${JSON.stringify(versions, null, 2)}\n`);
-  }
-  return slug;
+  if (versions.includes(slug)) return { slug, added: false };
+  versions.push(slug);
+  versions.sort(compareSlugs);
+  await writeFile(file, `${JSON.stringify(versions, null, 2)}\n`);
+  return { slug, added: true };
 }

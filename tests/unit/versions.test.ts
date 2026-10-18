@@ -42,8 +42,8 @@ describe('addVersion', () => {
     const dir = await mkdtemp(join(tmpdir(), 'artic-versions-'));
     const file = join(dir, 'versions.json');
     await writeFile(file, '[]\n');
-    await addVersion(file, '0.1.0');
-    await addVersion(file, '0.1.4');
+    expect(await addVersion(file, '0.1.0')).toEqual({ slug: '0.1', added: true });
+    expect(await addVersion(file, '0.1.4')).toEqual({ slug: '0.1', added: false });
     expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(['0.1']);
   });
 });

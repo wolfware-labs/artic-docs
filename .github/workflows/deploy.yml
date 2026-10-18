@@ -1,0 +1,76 @@
+name: Deploy
+
+# One file for all three triggers so run_number is a single increasing
+# sequence, which is what the cluster follows.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/build-site
+        with:
+          build: "false"
+      - run: pnpm release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  deploy:
+    needs: release
+    if: >-
+      always() && github.ref == 'refs/heads/main' &&
+      (needs.release.result == 'success' || needs.release.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # Full history and tags, so a tag the release job just pushed is visible.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/build-site
+        with:
+          github-token: ${{ github.token }}
+          docsearch-app-id: ${{ vars.PUBLIC_DOCSEARCH_APP_ID }}
+          docsearch-api-key: ${{ vars.PUBLIC_DOCSEARCH_API_KEY }}
+          docsearch-index: ${{ vars.PUBLIC_DOCSEARCH_INDEX }}
+          mailerlite-action: ${{ vars.PUBLIC_MAILERLITE_ACTION }}
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - run: docker build -t artic-site:ci .
+      - run: bash scripts/smoke-image.sh artic-site:ci
+      - name: Push the tested image
+        run: |
+          refs="$(node scripts/image-tags.mjs)"
+          if [ -z "$refs" ]; then
+            echo "no image tags produced" >&2
+            exit 1
+          fi
+          while read -r ref; do
+            docker tag artic-site:ci "$ref"
+            docker push "$ref"
+          done <<< "$refs"
+        env:
+          # Nightly and manual runs rebuild the release commit, so only the push that made it moves site-<version>.
+          RELEASE_TAGS: ${{ github.event_name == 'push' && 'true' || '' }}
+          IMAGE_REPO: docker.io/wolfware/artic-site
+          RUN_NUMBER: ${{ github.run_number }}
