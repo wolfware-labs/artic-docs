@@ -3,7 +3,10 @@ import Landing from '../layouts/Landing.astro';
 import GettingStarted from '../components/landing/GettingStarted.astro';
 import Proofs from '../components/landing/Proofs.astro';
 import Roadmap from '../components/landing/Roadmap.astro';
+import Newsletter from '../components/landing/Newsletter';
+import { newsletterAction } from '../lib/newsletter';
 import ExplodedStack from '../components/landing/exploded/ExplodedStack';
+const action = newsletterAction(import.meta.env);
 ---
 
 <Landing>
@@ -12,5 +15,7 @@ import ExplodedStack from '../components/landing/exploded/ExplodedStack';
   </section>
   <GettingStarted />
   <Proofs />
-  <Roadmap />
+  <Roadmap>
+    {action && <Newsletter slot="newsletter" action={action} client:visible />}
+  </Roadmap>
 </Landing>

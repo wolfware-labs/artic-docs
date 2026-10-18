@@ -4,3 +4,4 @@ dist/
 test-results/
 playwright-report/
 src/content/docs/docs/contributing/
+dist-newsletter/

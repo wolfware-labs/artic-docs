@@ -265,6 +265,70 @@ const doneShare = items.filter((m) => m.status === 'done').length;
   .roadmap .newsletter:empty {
     display: none;
   }
+  .roadmap .news {
+    display: grid;
+    gap: 12px;
+    max-width: 100%;
+  }
+  .roadmap .news label b {
+    display: block;
+    font: 600 18px var(--font-body);
+  }
+  .roadmap .news label span {
+    color: var(--mute);
+    font-size: 14px;
+  }
+  .roadmap .news .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .roadmap .news input[type='email'] {
+    flex: 1 1 200px;
+    width: 280px;
+    max-width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--line);
+    font: 400 15px var(--font-body);
+  }
+  .roadmap .news input[type='email']:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 1px;
+  }
+  .roadmap .news button {
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--teal);
+    color: #06121c;
+    font: 600 15px var(--font-body);
+    cursor: pointer;
+  }
+  .roadmap .news button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .roadmap .news button:focus-visible {
+    outline: 2px solid var(--line);
+    outline-offset: 2px;
+  }
+  .roadmap .news .msg {
+    margin: 0;
+    font-size: 14px;
+  }
+  .roadmap .news .msg:empty {
+    display: none;
+  }
+  .roadmap .news .msg.done {
+    color: var(--teal);
+  }
+  .roadmap .news .msg.failed {
+    color: var(--line);
+  }
   .roadmap .links {
     display: flex;
     flex-wrap: wrap;

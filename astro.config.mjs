@@ -25,6 +25,8 @@ function starlightPlugins() {
 
 export default defineConfig({
   site: 'https://artic.rs',
+  // The newsletter e2e builds a second copy of the site with the form switched on.
+  outDir: process.env.ARTIC_OUT_DIR || 'dist',
   vite: {
     resolve: {
       // Our Banner and Search overrides render components from plugins that may be off.

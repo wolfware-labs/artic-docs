@@ -9,7 +9,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "test": "vitest run --passWithNoTests",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test && pnpm test:e2e:newsletter",
+    "test:e2e:newsletter": "E2E_NEWSLETTER=1 playwright test"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
