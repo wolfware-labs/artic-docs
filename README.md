@@ -92,8 +92,7 @@ There is no `latest` tag.
 
 | Setting | Kind | Used for |
 | --- | --- | --- |
-| `DOCKERHUB_USERNAME` | Variable | Docker Hub login. |
-| `DOCKERHUB_TOKEN` | Secret | Docker Hub login. |
+| `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` | Secrets, set for the whole wolfware-labs org | Docker Hub login. |
 | `PUBLIC_DOCSEARCH_APP_ID`, `PUBLIC_DOCSEARCH_API_KEY`, `PUBLIC_DOCSEARCH_INDEX`, `PUBLIC_MAILERLITE_ACTION` | Variables, optional | Build-time values, see the Environment variables table. |
 
 Turn on Settings > Actions > General > "Allow GitHub Actions to create and approve pull
