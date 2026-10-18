@@ -1,0 +1,49 @@
+name: Archive docs
+
+# Sent by the framework repo when it publishes a release. main only accepts pull
+# requests, so the snapshot goes up as one.
+on:
+  repository_dispatch:
+    types: [framework-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Framework release to archive, like 1.2.0
+        required: true
+
+concurrency:
+  group: archive-docs
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # No stored credentials, so install scripts and the build never see a token.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/build-site
+        with:
+          build: "false"
+      - name: Archive the docs
+        id: archive
+        run: node scripts/archive-version.mjs "$VERSION"
+        env:
+          VERSION: ${{ github.event.client_payload.version || inputs.version }}
+      - run: pnpm test
+      - name: Open the pull request
+        if: steps.archive.outputs.added == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ github.token }}
+          sign-commits: true
+          branch: docs/archive-${{ steps.archive.outputs.slug }}
+          title: "docs: archive the ${{ steps.archive.outputs.slug }} docs"
+          commit-message: "docs: archive the ${{ steps.archive.outputs.slug }} docs"
+          body: |
+            Archives the user docs for artic ${{ github.event.client_payload.version || inputs.version }} as /${{ steps.archive.outputs.slug }}/docs/.
+            Opened by the framework release workflow.
