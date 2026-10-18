@@ -320,8 +320,10 @@ const doneShare = items.filter((m) => m.status === 'done').length;
     margin: 0;
     font-size: 14px;
   }
+  /* Stays rendered so screen readers announce text when it appears; it only
+     gives back the grid gap while empty. */
   .roadmap .news .msg:empty {
-    display: none;
+    margin-top: -12px;
   }
   .roadmap .news .msg.done {
     color: var(--teal);

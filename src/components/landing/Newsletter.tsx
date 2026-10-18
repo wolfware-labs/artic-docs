@@ -19,19 +19,29 @@ export default function Newsletter({ action }: Props) {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (state === 'sending') return;
+    const form = event.currentTarget;
     setState('sending');
+    let response: Response;
+    let result: { success?: boolean };
     try {
-      const response = await fetch(action, {
+      response = await fetch(action, {
         method: 'POST',
-        body: new FormData(event.currentTarget),
+        body: new FormData(form),
         headers: { Accept: 'application/json' },
       });
-      if (!response.ok) throw new Error(String(response.status));
-      const result = (await response.json()) as { success?: boolean };
-      setState(result.success === true ? 'done' : 'failed');
+      if (!response.ok) {
+        // A definite rejection from the server: say so and keep the address.
+        setState('failed');
+        return;
+      }
+      result = (await response.json()) as { success?: boolean };
     } catch {
-      setState('failed');
+      // Blocked by CORS, offline, or a reply we cannot read. The signup may still
+      // have gone through, so let the browser submit the form the plain way.
+      form.submit();
+      return;
     }
+    setState(result.success === true ? 'done' : 'failed');
   }
 
   const message =

@@ -28,6 +28,14 @@ test.describe('newsletter form', () => {
     await expect(page.locator('#roadmap .links a')).toHaveCount(3);
   });
 
+  test('keeps a polite live region rendered before any submit', async ({ page }) => {
+    const live = page.locator('#roadmap form [aria-live="polite"]');
+    await expect(live).toHaveCount(1);
+    const display = await live.evaluate((el) => getComputedStyle(el).display);
+    expect(display).not.toBe('none');
+    await expect(live).toBeEmpty();
+  });
+
   test('the browser blocks an invalid email', async ({ page }) => {
     let posted = false;
     await page.route(endpoint, (route) => {
@@ -66,6 +74,38 @@ test.describe('newsletter form', () => {
     await expect(page.getByText("That didn't go through. Try again in a minute.")).toBeVisible();
     await expect(input).toHaveValue('reader@example.com');
     await expect(page.getByRole('button', { name: 'Subscribe' })).toBeEnabled();
+  });
+
+  test('a network error falls back to a plain form submit', async ({ page }) => {
+    const seen: { type: string; method: string }[] = [];
+    await page.route(endpoint, (route) => {
+      const request = route.request();
+      seen.push({ type: request.resourceType(), method: request.method() });
+      if (request.resourceType() === 'document') {
+        return route.fulfill({ contentType: 'text/html', body: '<p>ok</p>' });
+      }
+      return route.abort();
+    });
+    await page.getByLabel(/follow artic/i).fill('reader@example.com');
+    await page.getByRole('button', { name: 'Subscribe' }).click();
+    await page.waitForURL(endpoint);
+    expect(seen).toContainEqual({ type: 'document', method: 'POST' });
+  });
+
+  test('an unreadable success response falls back to a plain form submit', async ({ page }) => {
+    const seen: string[] = [];
+    await page.route(endpoint, (route) => {
+      const request = route.request();
+      seen.push(request.resourceType());
+      return route.fulfill({
+        contentType: 'text/html',
+        body: request.resourceType() === 'document' ? '<p>ok</p>' : 'not json',
+      });
+    });
+    await page.getByLabel(/follow artic/i).fill('reader@example.com');
+    await page.getByRole('button', { name: 'Subscribe' }).click();
+    await page.waitForURL(endpoint);
+    expect(seen).toContain('document');
   });
 
   test('a rejected signup (success false) also shows the error', async ({ page }) => {
