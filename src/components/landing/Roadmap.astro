@@ -179,15 +179,21 @@ const doneShare = items.filter((m) => m.status === 'done').length;
   .roadmap .in-progress .state {
     color: var(--line);
   }
-  .roadmap .planned .dot,
-  .roadmap .planned .state,
-  .roadmap .planned h3,
-  .roadmap .planned p {
+  /* Planned milestones read dimmer. The diamond fades with opacity; the text uses
+     dimmer colors instead, so it keeps 4.5:1 on the page background. */
+  .roadmap .planned .dot {
     opacity: 0.6;
+  }
+  .roadmap .planned h3 {
+    color: #8e9aa3;
+  }
+  .roadmap .planned .state,
+  .roadmap .planned p {
+    color: #71889b;
   }
   .roadmap .planned h3:focus-within,
   .roadmap .planned h3:hover {
-    opacity: 1;
+    color: var(--line);
   }
   .roadmap .bar {
     height: 4px;
