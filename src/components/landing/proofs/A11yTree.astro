@@ -78,7 +78,8 @@ const rows = [
   .proofs .tree .g {
     color: #829db5;
   }
-  .proofs .tree .on {
+  /* Matches the row rule above in specificity, so the padding that offsets the margin wins. */
+  .proofs .tree .nodes > .on {
     margin: 0 -8px;
     padding: 2px 8px;
     border-radius: 4px;
