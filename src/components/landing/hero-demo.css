@@ -1,7 +1,8 @@
 /* Hero demo: a large device running the app, with the XAML editor overlapping its side. */
 .hd {
-  --w: 400px;
-  --h: 280px;
+  /* The editor card's left edge must stay right of the hero copy in every frame. */
+  --w: 370px;
+  --h: 264px;
   --r: 12px;
   --bezel: 0px;
   --overlap: 56px;

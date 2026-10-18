@@ -33,6 +33,31 @@ test.describe('hero demo', () => {
   });
 });
 
+for (const width of [1920, 1600, 1536, 1366, 1280, 1120]) {
+  test.describe(`hero demo at ${width}px`, () => {
+    test.use({ viewport: { width, height: 900 } });
+
+    test('the editor card never covers the hero copy, in any frame', async ({ page }) => {
+      test.setTimeout(30000);
+      await page.goto('/');
+      await page.evaluate(() => document.fonts.ready);
+      for (const frame of ['desktop', 'phone', 'tablet']) {
+        await expect(page.locator(device)).toHaveAttribute('data-device', frame, { timeout: 15000 });
+        // Let the frame finish its morph before measuring.
+        await page.waitForTimeout(900);
+        const gap = await page.evaluate(() => {
+          const sub = document.querySelector('.hero .sub')!;
+          const range = document.createRange();
+          range.selectNodeContents(sub);
+          const textRight = Math.max(...[...range.getClientRects()].map((r) => r.right));
+          return document.querySelector('.hero .hd-code')!.getBoundingClientRect().left - textRight;
+        });
+        expect(gap, `gap in the ${frame} frame`).toBeGreaterThanOrEqual(8);
+      }
+    });
+  });
+}
+
 test.describe('hero demo with reduced motion', () => {
   test.use({ viewport: { width: 1600, height: 900 }, reducedMotion: 'reduce' });
 
