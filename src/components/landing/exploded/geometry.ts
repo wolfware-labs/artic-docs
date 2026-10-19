@@ -66,7 +66,8 @@ export const NARROW: Layout = {
   cxStart: 210,
   w: 76,
   t: 12,
-  altX: [270, 372],
+  // Far enough apart that the captions under each pair read as two ("Rust builder", "your DSL").
+  altX: [264, 380],
   aw: 36,
   altT: 7,
   altDy: 4,
