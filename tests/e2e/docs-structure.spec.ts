@@ -107,6 +107,39 @@ test.describe('docs layout at 1920px', () => {
   });
 });
 
+test.describe('code blocks', () => {
+  for (const path of ['/docs/contributing/architecture/', '/docs/contributing/spec/technical-spec/']) {
+    test(`mermaid fences render as diagrams on ${path}`, async ({ page }) => {
+      await page.goto(path);
+      const diagrams = page.locator('.sl-markdown-content pre.mermaid');
+      await expect(diagrams.first().locator('svg')).toBeVisible({ timeout: 15000 });
+      for (const d of await diagrams.all()) {
+        await expect(d.locator('svg')).toBeVisible({ timeout: 15000 });
+        // mermaid draws its parse errors as an SVG too, so require drawn nodes.
+        await expect(d.locator('svg[aria-roledescription="error"]')).toHaveCount(0);
+        await expect(d.locator('svg .node').first()).toBeVisible();
+      }
+    });
+  }
+
+  for (const [path, heading] of [
+    ['/docs/contributing/design/host/', null],
+    ['/docs/contributing/design/border/', '2-the-inner-shape-and-the-ring'],
+  ] as const) {
+  test(`rustdoc-style fences are highlighted as Rust on ${path}`, async ({ page }) => {
+    await page.goto(path);
+    // Starlight wraps each heading in a div, so the code blocks are siblings of the wrapper.
+    const scope = heading ? page.locator(`.sl-heading-wrapper:has([id="${heading}"]) ~ .expressive-code`) : page;
+    const block = scope.locator('pre').first();
+    await expect(block).toHaveAttribute('data-language', 'rust');
+    const colors = await block.evaluate(
+      (pre) => new Set([...pre.querySelectorAll('span[style]')].map((s) => getComputedStyle(s).color)).size,
+    );
+    expect(colors).toBeGreaterThan(2);
+  });
+  }
+});
+
 test.describe('docs header title', () => {
   test('shows the artic wordmark linking home and a Docs link', async ({ page }) => {
     await page.goto('/docs/concepts/signals/');
