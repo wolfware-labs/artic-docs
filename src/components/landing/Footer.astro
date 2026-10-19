@@ -32,7 +32,7 @@ const columns = [
       <img src="/brand/artic-logo.png" alt="" width="44" height="44" />
       <div>
         <b>artic</b>
-        <small>A cross-platform UI framework for Rust. Built by Wolfware.</small>
+        <small>A cross-platform UI framework for Rust. Built by <a href="https://wolfware.dev">Wolfware</a>.</small>
       </div>
     </div>
     {
@@ -47,7 +47,7 @@ const columns = [
     }
     <div class="legal">
       <span>MIT or Apache-2.0, at your option.</span>
-      <span>© 2026 Wolfware</span>
+      <span>© 2026 <a href="https://wolfware.dev">Wolfware LLC</a></span>
     </div>
   </div>
 </footer>
@@ -71,6 +71,20 @@ const columns = [
   ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
   a { color: var(--line); text-decoration: none; font-size: 15px; }
   a:hover { color: var(--teal); }
+  /* Inline links in running text: keep the surrounding size and color, mark them with an underline. */
+  .brand small a,
+  .legal a {
+    font-size: inherit;
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--edge);
+    text-underline-offset: 3px;
+  }
+  .brand small a:hover,
+  .legal a:hover {
+    color: var(--line);
+    text-decoration-color: var(--teal);
+  }
   .legal {
     grid-column: 1 / -1;
     display: flex;

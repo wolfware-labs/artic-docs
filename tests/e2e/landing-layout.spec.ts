@@ -74,6 +74,13 @@ for (const width of [1600, 1024, 920, 375]) {
       expect(colors).toEqual([]);
     });
 
+    test('footer links Wolfware to wolfware.dev, with the legal name in the copyright', async ({ page }) => {
+      const footer = page.locator('footer');
+      await expect(footer.getByRole('link', { name: 'Wolfware', exact: true })).toHaveAttribute('href', 'https://wolfware.dev');
+      await expect(footer.getByRole('link', { name: 'Wolfware LLC', exact: true })).toHaveAttribute('href', 'https://wolfware.dev');
+      await expect(footer).toContainText('© 2026 Wolfware LLC');
+    });
+
     test('footer states the license', async ({ page }) => {
       await expect(page.locator('footer')).toContainText('MIT or Apache-2.0, at your option.');
     });
