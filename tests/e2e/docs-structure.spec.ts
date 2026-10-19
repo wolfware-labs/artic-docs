@@ -127,39 +127,94 @@ test.describe('docs header title', () => {
 });
 
 for (const width of [1280, 1920, 2560]) {
-  test.describe(`docs text placement at ${width}px`, () => {
+  test.describe(`docs layout at ${width}px`, () => {
     test.use({ viewport: { width, height: 1000 } });
 
     const measure = (page: import('@playwright/test').Page) =>
       page.evaluate(() => {
-        const sidebar = document.querySelector('.sidebar-pane')!.getBoundingClientRect();
-        const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
-        const toc = document.querySelector('.right-sidebar')?.getBoundingClientRect();
-        // The .right-sidebar box itself is fixed and as wide as the viewport (Starlight's
-        // own styles), so check the links a reader sees and the page width instead.
-        const links = [...document.querySelectorAll('starlight-toc a')].map((a) => a.getBoundingClientRect());
+        const box = (s: string) => document.querySelector(s)?.getBoundingClientRect() ?? null;
+        const sidebar = box('.sidebar-pane')!;
+        const text = box('main .sl-container')!;
+        const toc = box('.right-sidebar');
+        // Collapsed nested entries have empty boxes; only measure the links on screen.
+        const links = [...document.querySelectorAll('starlight-toc a')]
+          .map((a) => a.getBoundingClientRect())
+          .filter((l) => l.width > 0);
+        const para = box('.sl-markdown-content > p');
+        const search = box('div.header > :nth-child(2) button');
         return {
+          sidebarWidth: sidebar.width,
           left: text.left - sidebar.right,
-          right: toc ? toc.left - text.right : null,
+          // Space between the text column and what follows it: the table of contents, or the window edge.
+          right: (toc ? toc.left : innerWidth) - text.right,
+          tocWidth: toc ? toc.width : null,
           tocInView: toc ? links.length > 0 && links.every((l) => l.left >= toc.left && l.right <= innerWidth) : null,
+          paraWidth: para ? para.width : null,
+          textWidth: text.width,
+          searchOffCenter: search ? Math.abs(search.left + search.width / 2 - innerWidth / 2) : null,
           noSideScroll: document.documentElement.scrollWidth <= innerWidth,
         };
       });
 
-    test('a page without sections starts the text next to the sidebar', async ({ page }) => {
+    test('a page without sections fills the width beside the sidebar', async ({ page }) => {
       await page.goto('/docs/start-here/install/');
       const m = await measure(page);
+      expect(m.sidebarWidth).toBe(320);
       expect(m.left).toBeLessThanOrEqual(32);
+      expect(m.right).toBeLessThanOrEqual(32);
       expect(m.noSideScroll).toBe(true);
     });
 
-    test('a page with sections keeps text, then its table of contents, beside the sidebar', async ({ page }) => {
+    test('a page with sections fills the width up to a table of contents on the right edge', async ({ page }) => {
       await page.goto('/docs/contributing/architecture/');
       const m = await measure(page);
       expect(m.left).toBeLessThanOrEqual(32);
       expect(m.right).toBeLessThanOrEqual(32);
+      expect(m.tocWidth).toBe(256);
       expect(m.tocInView).toBe(true);
       expect(m.noSideScroll).toBe(true);
+      // Prose keeps a readable line length even when the column is wider.
+      expect(m.paraWidth).toBeLessThanOrEqual(840);
+    });
+
+    test('the header search sits in the middle of the window', async ({ page }) => {
+      await page.goto('/docs/contributing/architecture/');
+      expect((await measure(page)).searchOffCenter).toBeLessThanOrEqual(8);
     });
   });
 }
+
+test.describe('table of contents', () => {
+  test.use({ viewport: { width: 1920, height: 1000 } });
+
+  test('uses a readable font size', async ({ page }) => {
+    await page.goto('/docs/contributing/architecture/');
+    const size = await page.locator('.right-sidebar starlight-toc a').first().evaluate((a) => parseFloat(getComputedStyle(a).fontSize));
+    expect(size).toBeGreaterThanOrEqual(15);
+  });
+});
+
+test.describe('pre-release banner', () => {
+  test.use({ viewport: { width: 1920, height: 1000 } });
+
+  test('lines up with the text and keeps clear of the header', async ({ page }) => {
+    await page.goto('/docs/contributing/architecture/');
+    const m = await page.evaluate(() => {
+      const banner = document.querySelector('.prerelease-banner')!.getBoundingClientRect();
+      const header = document.querySelector('header.header')!.getBoundingClientRect();
+      const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
+      return { top: banner.top - header.bottom, left: banner.left - text.left, right: text.right - banner.right };
+    });
+    expect(m.top).toBeGreaterThanOrEqual(12);
+    expect(Math.abs(m.left)).toBeLessThanOrEqual(1);
+    expect(Math.abs(m.right)).toBeLessThanOrEqual(1);
+  });
+
+  test('uses light colors in the light theme', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('/docs/contributing/architecture/');
+    const bg = await page.locator('.prerelease-banner').evaluate((b) => getComputedStyle(b).backgroundColor);
+    const [r, g, b] = bg.match(/\d+/g)!.map(Number);
+    expect((r + g + b) / 3).toBeGreaterThan(200);
+  });
+});

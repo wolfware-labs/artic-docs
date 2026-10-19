@@ -13,11 +13,12 @@ import VersionBanner from 'starlight-versions/components/VersionBanner.astro';
 <style>
   .prerelease-banner {
     border: 1px dashed var(--peri);
-    border-radius: 4px;
-    background: var(--panel);
-    color: var(--mute);
+    border-radius: 6px;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-2);
     padding: 0.5rem 0.9rem;
-    margin-block-end: 1.25rem;
+    /* Inset like the text column below it, with room under the header. */
+    margin: 1rem var(--sl-content-pad-x) 0;
     font-family: var(--font-display);
     font-size: 1rem;
     letter-spacing: 0.02em;
@@ -25,9 +26,15 @@ import VersionBanner from 'starlight-versions/components/VersionBanner.astro';
   .prerelease-banner p {
     margin: 0;
   }
+  :global([data-theme='light']) .prerelease-banner {
+    border-color: var(--sl-color-accent);
+  }
   .prerelease-banner a {
     color: var(--peri);
     text-underline-offset: 0.2em;
+  }
+  :global([data-theme='light']) .prerelease-banner a {
+    color: var(--sl-color-accent);
   }
   .prerelease-banner a:focus-visible {
     outline: 2px solid var(--teal);
