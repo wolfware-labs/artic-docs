@@ -111,6 +111,28 @@ test.describe('exploded stack with reduced motion', () => {
 test.describe('exploded stack at 375px', () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
+  test('keeps clear space between the captions of side-by-side alternatives', async ({ page }) => {
+    await goLive(page);
+    await scrollTrackTo(page, 0.72);
+    await expect(island(page)).toHaveAttribute('data-progress', '0.72');
+    const rows = await page.evaluate(() => {
+      const svg = document.querySelector('#how-it-works svg.xs-narrow') as SVGSVGElement;
+      const width = svg.viewBox.baseVal.width;
+      const caps = [...svg.querySelectorAll<SVGTextElement>('.xs-cap')].map((t) => t.getBBox());
+      const byRow = new Map<number, DOMRect[]>();
+      for (const c of caps) byRow.set(Math.round(c.y), [...(byRow.get(Math.round(c.y)) ?? []), c]);
+      return [...byRow.values()].map((row) => {
+        row.sort((a, b) => a.x - b.x);
+        return { gap: row.length > 1 ? row[1].x - (row[0].x + row[0].width) : null, right: Math.max(...row.map((c) => c.x + c.width)), width };
+      });
+    });
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) {
+      if (r.gap !== null) expect(r.gap).toBeGreaterThanOrEqual(24);
+      expect(r.right).toBeLessThanOrEqual(r.width);
+    }
+  });
+
   test('lists the callouts under the drawing with no horizontal scroll', async ({ page }) => {
     await goLive(page);
     for (const f of [0, 0.4, 0.7, 1]) {
