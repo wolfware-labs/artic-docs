@@ -1,7 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
 
-const meta = (page: Page, attr: 'name' | 'property', key: string) =>
-  page.locator(`head meta[${attr}="${key}"]`).getAttribute('content');
+// Each tag must appear once: a duplicate would leave crawlers to pick one.
+const meta = async (page: Page, attr: 'name' | 'property', key: string) => {
+  const tag = page.locator(`head meta[${attr}="${key}"]`);
+  await expect(tag, `${key} appears once`).toHaveCount(1);
+  return tag.getAttribute('content');
+};
 
 test('robots.txt allows crawling and points at the sitemap', async ({ request }) => {
   const res = await request.get('/robots.txt');
@@ -22,6 +26,7 @@ test('the sitemap lists the landing page and the docs', async ({ request }) => {
 
 test('the landing page carries canonical, social and structured data', async ({ page, request }) => {
   await page.goto('/');
+  await expect(page.locator('head link[rel="canonical"]')).toHaveCount(1);
   await expect(page.locator('head link[rel="canonical"]')).toHaveAttribute('href', 'https://artic.rs/');
   await expect(page.locator('head link[rel="sitemap"]')).toHaveAttribute('href', '/sitemap-index.xml');
   expect(await meta(page, 'property', 'og:type')).toBe('website');
