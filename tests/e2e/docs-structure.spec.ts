@@ -208,9 +208,9 @@ for (const width of [1280, 1920, 2560]) {
       expect(m.tocWidth).toBe(256);
       expect(m.tocInView).toBe(true);
       expect(m.noSideScroll).toBe(true);
-      // Prose keeps a readable line length even when the column is wider.
-      expect(m.paraWidth).toBeLessThanOrEqual(840);
-      expect(m.headingWidth).toBeLessThanOrEqual(840);
+      // Prose uses the whole column, like code blocks do.
+      expect(m.paraWidth).toBe(m.textWidth);
+      expect(m.headingWidth).toBe(m.textWidth);
     });
 
     test('the header search sits in the middle of the window', async ({ page }) => {
@@ -277,15 +277,70 @@ test.describe('mermaid diagram placement', () => {
 test.describe('previous and next links', () => {
   test.use({ viewport: { width: 1920, height: 1000 } });
 
-  test('stay as wide as the prose, not the whole column', async ({ page }) => {
+  test('sit at the two edges of the text column, at a compact size', async ({ page }) => {
     await page.goto('/docs/concepts/signals/');
-    const width = await page.locator('.pagination-links').evaluate((e) => e.getBoundingClientRect().width);
-    expect(width).toBeLessThanOrEqual(840);
+    const m = await page.evaluate(() => {
+      const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
+      const box = (rel: string) => document.querySelector(`.pagination-links a[rel="${rel}"]`)!.getBoundingClientRect();
+      const prev = box('prev');
+      const next = box('next');
+      return { prevLeft: prev.left - text.left, nextRight: text.right - next.right, prevWidth: prev.width, nextWidth: next.width };
+    });
+    expect(Math.abs(m.prevLeft)).toBeLessThanOrEqual(1);
+    expect(Math.abs(m.nextRight)).toBeLessThanOrEqual(1);
+    expect(m.prevWidth).toBeLessThanOrEqual(420);
+    expect(m.nextWidth).toBeLessThanOrEqual(420);
+  });
+
+  test('keep a lone next link on the right', async ({ page }) => {
+    // The first page has no previous link.
+    await page.goto('/docs/start-here/install/');
+    await expect(page.locator('.pagination-links a[rel="prev"]')).toHaveCount(0);
+    const gap = await page.evaluate(() => {
+      const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
+      const next = document.querySelector('.pagination-links a[rel="next"]')!.getBoundingClientRect();
+      return text.right - next.right;
+    });
+    expect(Math.abs(gap)).toBeLessThanOrEqual(1);
   });
 
   test('use body-size titles, not heading-size ones', async ({ page }) => {
     await page.goto('/docs/concepts/signals/');
     const size = await page.locator('.pagination-links .link-title').first().evaluate((e) => parseFloat(getComputedStyle(e).fontSize));
     expect(size).toBeLessThanOrEqual(16);
+  });
+});
+
+test.describe('previous and next links on a laptop', () => {
+  test.use({ viewport: { width: 1280, height: 900 } });
+
+  test('stay on one row beside the table of contents', async ({ page }) => {
+    await page.goto('/docs/contributing/design/border/');
+    const tops = await page
+      .locator('.pagination-links a')
+      .evaluateAll((links) => links.map((a) => Math.round(a.getBoundingClientRect().top)));
+    expect(tops).toHaveLength(2);
+    expect(tops[0]).toBe(tops[1]);
+  });
+});
+
+test.describe('previous and next links on a phone', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  test('stack at the full width of the text', async ({ page }) => {
+    await page.goto('/docs/contributing/design/border/');
+    const m = await page.evaluate(() => {
+      const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
+      return [...document.querySelectorAll('.pagination-links a')].map((a) => {
+        const r = a.getBoundingClientRect();
+        return { left: Math.round(r.left - text.left), right: Math.round(text.right - r.right), top: Math.round(r.top) };
+      });
+    });
+    expect(m).toHaveLength(2);
+    expect(m[1].top).toBeGreaterThan(m[0].top);
+    for (const card of m) {
+      expect(Math.abs(card.left)).toBeLessThanOrEqual(1);
+      expect(Math.abs(card.right)).toBeLessThanOrEqual(1);
+    }
   });
 });
