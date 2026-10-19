@@ -60,6 +60,9 @@ test('docs pages carry the share image and site name', async ({ page }) => {
   expect(await meta(page, 'property', 'og:image')).toBe('https://artic.rs/og/artic.png');
   expect(await meta(page, 'name', 'twitter:image')).toBe('https://artic.rs/og/artic.png');
   expect(await meta(page, 'property', 'og:site_name')).toBe('artic');
+  // The docs set these in Starlight's head config, apart from the landing page.
+  expect(await meta(page, 'property', 'og:image:width')).toBe('2400');
+  expect(await meta(page, 'property', 'og:image:height')).toBe('1260');
   await expect(page.locator('head link[rel="canonical"]')).toHaveAttribute(
     'href',
     'https://artic.rs/docs/concepts/signals/',
