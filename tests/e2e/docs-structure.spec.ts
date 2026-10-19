@@ -273,3 +273,19 @@ test.describe('mermaid diagram placement', () => {
     for (const o of offsets) expect(o).toBeLessThanOrEqual(2);
   });
 });
+
+test.describe('previous and next links', () => {
+  test.use({ viewport: { width: 1920, height: 1000 } });
+
+  test('stay as wide as the prose, not the whole column', async ({ page }) => {
+    await page.goto('/docs/concepts/signals/');
+    const width = await page.locator('.pagination-links').evaluate((e) => e.getBoundingClientRect().width);
+    expect(width).toBeLessThanOrEqual(840);
+  });
+
+  test('use body-size titles, not heading-size ones', async ({ page }) => {
+    await page.goto('/docs/concepts/signals/');
+    const size = await page.locator('.pagination-links .link-title').first().evaluate((e) => parseFloat(getComputedStyle(e).fontSize));
+    expect(size).toBeLessThanOrEqual(16);
+  });
+});
