@@ -4,7 +4,14 @@ import Nav from '../components/landing/Nav.astro';
 import Hero from '../components/landing/Hero.astro';
 import Footer from '../components/landing/Footer.astro';
 import StickyHeader from '../components/landing/StickyHeader.astro';
-import { REPOSITORY, SHARE_IMAGE, SHARE_IMAGE_ALT, SITE_NAME } from '../lib/seo.mjs';
+import {
+  REPOSITORY,
+  SHARE_IMAGE,
+  SHARE_IMAGE_ALT,
+  SHARE_IMAGE_HEIGHT,
+  SHARE_IMAGE_WIDTH,
+  SITE_NAME,
+} from '../lib/seo.mjs';
 
 interface Props {
   title?: string;
@@ -47,8 +54,8 @@ const structured = {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={image} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image:width" content={String(SHARE_IMAGE_WIDTH)} />
+    <meta property="og:image:height" content={String(SHARE_IMAGE_HEIGHT)} />
     <meta property="og:image:alt" content={SHARE_IMAGE_ALT} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={image} />

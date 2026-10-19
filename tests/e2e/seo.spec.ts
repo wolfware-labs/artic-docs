@@ -42,6 +42,12 @@ test('the landing page carries canonical, social and structured data', async ({ 
   const res = await request.get(new URL(image!).pathname);
   expect(res.status()).toBe(200);
   expect(res.headers()['content-type']).toBe('image/png');
+  // Rendered at twice the 1200x630 card size so it stays sharp after link previews recompress it.
+  const png = await res.body();
+  const size = { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
+  expect(size).toEqual({ width: 2400, height: 1260 });
+  expect(await meta(page, 'property', 'og:image:width')).toBe(String(size.width));
+  expect(await meta(page, 'property', 'og:image:height')).toBe(String(size.height));
 
   const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent())!);
   expect(ld['@type']).toBe('SoftwareSourceCode');
