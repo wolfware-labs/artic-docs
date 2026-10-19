@@ -12,6 +12,8 @@ export interface Layout {
   viewBox: string;
   /** Stack center x, slab half-width, slab thickness. */
   cx: number;
+  /** Where the stack starts, if it moves to `cx` before the alternatives slide out. */
+  cxStart?: number;
   w: number;
   t: number;
   /** Alternative slots: center x of each, half-width, thickness, drop below the slab. */
@@ -60,6 +62,8 @@ export const NARROW: Layout = {
   key: 'narrow',
   viewBox: '0 0 420 440',
   cx: 118,
+  // Centered until the alternatives need the room on the right.
+  cxStart: 210,
   w: 76,
   t: 12,
   altX: [270, 372],
@@ -115,6 +119,7 @@ export function frame(p: number, L: Layout): LayerFrame[] {
   // Captions on the swapping outlines hide while they move.
   const capVis = 1 - Math.sin(Math.PI * ph.move);
   const top = lerp(L.topClosed, L.topOpen, ph.explode);
+  const stackX = lerp(L.cxStart ?? L.cx, L.cx, ph.shift);
   const gap = lerp(L.gapClosed, L.gapOpen, ph.explode);
 
   return LAYERS.map((layer, index) => {
@@ -124,12 +129,12 @@ export function frame(p: number, L: Layout): LayerFrame[] {
     // Alternatives slide out from behind the slab.
     const alts = layer.alts.map((label, j) => {
       const moving = swaps && j === 0;
-      let cx = lerp(L.cx + L.w * 0.4, L.altX[j], ph.alts);
+      let cx = lerp(stackX + L.w * 0.4, L.altX[j], ph.alts);
       let w = lerp(L.w * 0.6, L.aw, ph.alts);
       let t = L.altT;
       let ghost = 1;
       if (moving) {
-        cx = lerp(cx, L.cx, ph.move);
+        cx = lerp(cx, stackX, ph.move);
         w = lerp(w, L.w, ph.move);
         t = lerp(L.altT, L.t, ph.move);
         ghost = 1 - ph.plug;
@@ -149,25 +154,25 @@ export function frame(p: number, L: Layout): LayerFrame[] {
     const main: Part = swaps
       ? {
           label: layer.label,
-          cx: lerp(L.cx, L.altX[0], ph.move),
+          cx: lerp(stackX, L.altX[0], ph.move),
           cy: cy + L.altDy * ph.move,
           w: lerp(L.w, L.aw, ph.move),
           t: lerp(L.t, L.altT, ph.move),
           ghost: ph.unplug,
           cap: capVis,
         }
-      : { label: layer.label, cx: L.cx, cy, w: L.w, t: L.t, ghost: 0, cap: 1 };
+      : { label: layer.label, cx: stackX, cy, w: L.w, t: L.t, ghost: 0, cap: 1 };
 
     // Gone well before the leader lines start drawing.
     const tag = {
-      x: L.tagSide === 'left' ? L.cx - L.w - 10 : L.cx + L.w + 10,
+      x: L.tagSide === 'left' ? stackX - L.w - 10 : stackX + L.w + 10,
       y: cy + L.t / 2,
       opacity: 1 - clamp(ph.explode * 3),
     };
 
     let leader: LayerFrame['leader'] = null;
     if (L.calloutX !== null) {
-      const x = L.cx - L.w;
+      const x = stackX - L.w;
       leader = {
         x,
         y: cy,
@@ -179,7 +184,7 @@ export function frame(p: number, L: Layout): LayerFrame[] {
 
     let connector: LayerFrame['connector'] = null;
     if (layer.alts.length) {
-      const x1 = L.cx + L.w + L.connInset;
+      const x1 = stackX + L.w + L.connInset;
       const x2 = L.altX[0] - L.aw - L.connInset;
       connector = {
         x1,

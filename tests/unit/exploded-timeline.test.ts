@@ -111,4 +111,21 @@ describe('frame', () => {
     expect(frame(0.15, WIDE)[0].tag.opacity).toBeLessThan(1);
     expect(frame(0.3, WIDE)[0].tag.opacity).toBe(0);
   });
+
+  it('starts the narrow stack centered and moves it left before the alternatives slide out', () => {
+    const center = (p: number) => frame(p, NARROW)[0].main.cx;
+    expect(center(0)).toBe(NARROW.cxStart);
+    expect(center(0.38)).toBe(NARROW.cxStart);
+    expect(center(0.5)).toBe(NARROW.cx);
+    expect(phases(0.5).alts).toBe(0);
+    // Mid-move it sits between the two positions.
+    expect(center(0.45)).toBeLessThan(NARROW.cxStart!);
+    expect(center(0.45)).toBeGreaterThan(NARROW.cx);
+  });
+
+  it('keeps the wide stack where it is', () => {
+    expect(frame(0, WIDE)[0].main.cx).toBe(WIDE.cx);
+    expect(frame(0.45, WIDE)[0].main.cx).toBe(WIDE.cx);
+  });
 });
+

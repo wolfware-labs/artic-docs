@@ -13,6 +13,8 @@ export const seg = (p: number, a: number, b: number) => ease(clamp((p - a) / (b 
 export interface Phases {
   /** Slabs separate. */
   explode: number;
+  /** Narrow layouts: the stack moves from the center to make room for the alternatives. */
+  shift: number;
   /** Leader lines draw out to the callouts. */
   leaders: number;
   /** Alternatives slide out beside the swappable layers. */
@@ -30,6 +32,7 @@ export interface Phases {
 export function phases(p: number): Phases {
   return {
     explode: seg(p, 0.04, 0.38),
+    shift: seg(p, 0.4, 0.5),
     leaders: seg(p, 0.3, 0.52),
     alts: seg(p, 0.5, 0.68),
     conn: seg(p, 0.68, 0.76),
