@@ -36,10 +36,12 @@ test('the landing page carries canonical, social and structured data', async ({ 
   expect(await meta(page, 'property', 'og:description')).toBeTruthy();
   expect(await meta(page, 'name', 'twitter:card')).toBe('summary_large_image');
 
+  // The version is a hash of the file, so link previews fetch the card again whenever it changes.
   const image = await meta(page, 'property', 'og:image');
-  expect(image).toBe('https://artic.rs/og/artic.png');
+  expect(image).toMatch(/^https:\/\/artic\.rs\/og\/artic\.png\?v=[0-9a-f]{10}$/);
   expect(await meta(page, 'name', 'twitter:image')).toBe(image);
-  const res = await request.get(new URL(image!).pathname);
+  const url = new URL(image!);
+  const res = await request.get(url.pathname + url.search);
   expect(res.status()).toBe(200);
   expect(res.headers()['content-type']).toBe('image/png');
   // Rendered at twice the 1200x630 card size so it stays sharp after link previews recompress it.
@@ -56,9 +58,11 @@ test('the landing page carries canonical, social and structured data', async ({ 
 });
 
 test('docs pages carry the share image and site name', async ({ page }) => {
+  await page.goto('/');
+  const landingImage = await meta(page, 'property', 'og:image');
   await page.goto('/docs/concepts/signals/');
-  expect(await meta(page, 'property', 'og:image')).toBe('https://artic.rs/og/artic.png');
-  expect(await meta(page, 'name', 'twitter:image')).toBe('https://artic.rs/og/artic.png');
+  expect(await meta(page, 'property', 'og:image')).toBe(landingImage);
+  expect(await meta(page, 'name', 'twitter:image')).toBe(landingImage);
   expect(await meta(page, 'property', 'og:site_name')).toBe('artic');
   // The docs set these in Starlight's head config, apart from the landing page.
   expect(await meta(page, 'property', 'og:image:width')).toBe('2400');

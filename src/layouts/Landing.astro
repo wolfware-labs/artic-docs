@@ -6,7 +6,6 @@ import Footer from '../components/landing/Footer.astro';
 import StickyHeader from '../components/landing/StickyHeader.astro';
 import {
   REPOSITORY,
-  SHARE_IMAGE,
   SHARE_IMAGE_ALT,
   SHARE_IMAGE_HEIGHT,
   SHARE_IMAGE_WIDTH,
@@ -24,7 +23,8 @@ const {
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const image = new URL(SHARE_IMAGE, Astro.site).href;
+// Versioned in astro.config.mjs so link previews refetch the card when it changes.
+const image = import.meta.env.SHARE_IMAGE_URL;
 const structured = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareSourceCode',

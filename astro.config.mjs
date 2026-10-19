@@ -14,6 +14,7 @@ import {
   SHARE_IMAGE_HEIGHT,
   SHARE_IMAGE_WIDTH,
   SITE_NAME,
+  shareImageVersion,
 } from './src/lib/seo.mjs';
 import { versionsPluginConfig } from './src/lib/versions.mjs';
 
@@ -21,7 +22,8 @@ const archived = JSON.parse(readFileSync(new URL('./versions.json', import.meta.
 const versionsConfig = versionsPluginConfig(archived);
 const docsearch = docsearchEnabled(process.env);
 const SITE = 'https://artic.rs';
-const shareImage = new URL(SHARE_IMAGE, SITE).href;
+const shareImageFile = new URL(`./public${SHARE_IMAGE}`, import.meta.url);
+const shareImage = `${new URL(SHARE_IMAGE, SITE).href}?v=${shareImageVersion(readFileSync(shareImageFile))}`;
 const stub = fileURLToPath(new URL('./src/components/docs/NoPlugin.astro', import.meta.url));
 
 function starlightPlugins() {
@@ -42,6 +44,8 @@ export default defineConfig({
     processor: satteri({ mdastPlugins: [codeBlocks] }),
   },
   vite: {
+    // The landing page reads the versioned card URL computed above.
+    define: { 'import.meta.env.SHARE_IMAGE_URL': JSON.stringify(shareImage) },
     resolve: {
       // Our Banner and Search overrides render components from plugins that may be off.
       // A plugin that is off has no virtual modules, so point its components at an empty stub.
