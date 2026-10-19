@@ -56,6 +56,15 @@ footer .meta:not(:has(*)) {
   display: none;
 }
 
+/* Mermaid diagrams: drawn by the docs head script in place of the fence's source. */
+.sl-markdown-content pre.mermaid {
+  padding: 0;
+  overflow-x: auto;
+  border: 0;
+  background: transparent;
+  text-align: center;
+}
+
 /* Wide screens: the text column fills the space between the sidebar and a fixed-width table of
    contents on the right edge. Code, tables and diagrams use that width; prose keeps a readable
    line length. */
