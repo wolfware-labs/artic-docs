@@ -292,6 +292,18 @@ test.describe('previous and next links', () => {
     expect(m.nextWidth).toBeLessThanOrEqual(420);
   });
 
+  test('keep a lone next link on the right', async ({ page }) => {
+    // The first page has no previous link.
+    await page.goto('/docs/start-here/install/');
+    await expect(page.locator('.pagination-links a[rel="prev"]')).toHaveCount(0);
+    const gap = await page.evaluate(() => {
+      const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
+      const next = document.querySelector('.pagination-links a[rel="next"]')!.getBoundingClientRect();
+      return text.right - next.right;
+    });
+    expect(Math.abs(gap)).toBeLessThanOrEqual(1);
+  });
+
   test('use body-size titles, not heading-size ones', async ({ page }) => {
     await page.goto('/docs/concepts/signals/');
     const size = await page.locator('.pagination-links .link-title').first().evaluate((e) => parseFloat(getComputedStyle(e).fontSize));
