@@ -106,3 +106,22 @@ test.describe('docs layout at 1920px', () => {
     expect(gap).toBeLessThanOrEqual(56);
   });
 });
+
+test.describe('docs header title', () => {
+  test('shows the artic wordmark linking home and a Docs link', async ({ page }) => {
+    await page.goto('/docs/concepts/signals/');
+    const title = page.locator('header .site-title');
+    const home = title.getByRole('link', { name: 'artic', exact: true });
+    await expect(home).toHaveAttribute('href', '/');
+    await expect(home.locator('img')).toHaveAttribute('src', '/brand/artic-logo.png');
+    expect(await home.evaluate((a) => getComputedStyle(a).fontFamily)).toMatch(/Barlow Condensed/);
+    await expect(title.getByRole('link', { name: 'Docs', exact: true })).toHaveAttribute('href', '/docs/');
+  });
+
+  test('fits a phone header next to the search and menu buttons', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/docs/concepts/signals/');
+    const box = await page.locator('header .site-title').boundingBox();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(375 - 96);
+  });
+});

@@ -56,6 +56,7 @@ export default defineConfig({
         Banner: './src/components/docs/PrereleaseBanner.astro',
         Head: './src/components/docs/Head.astro',
         Search: './src/components/docs/Search.astro',
+        SiteTitle: './src/components/docs/SiteTitle.astro',
       },
       sidebar: [
         {
