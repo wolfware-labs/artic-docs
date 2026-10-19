@@ -51,13 +51,6 @@ h1, h2, h3, h4 {
   font-family: var(--font-display);
 }
 
-/* Wide screens have room for longer lines, which code samples need most. */
-@media (min-width: 80rem) {
-  :root {
-    --sl-content-width: 52.5rem;
-  }
-}
-
 /* With no edit link and no last-updated date the meta row is empty but still takes a gap. */
 footer .meta:not(:has(*)) {
   display: none;
@@ -72,25 +65,102 @@ footer .meta:not(:has(*)) {
   text-align: center;
 }
 
-/* Starlight centers the text in the space beside the sidebar, which leaves a wide empty gap on
-   big screens. Keep the text next to the sidebar and the table of contents right after it, so
-   spare width ends up past the table of contents instead. */
+/* mermaid sizes each diagram with a max-width; center the narrower ones in the column. */
+.sl-markdown-content pre.mermaid svg {
+  margin-inline: auto;
+}
+
+/* Wide screens: the text column fills the space between the sidebar and a fixed-width table of
+   contents on the right edge. Code, tables and diagrams use that width; prose keeps a readable
+   line length. */
+:root {
+  --artic-toc-width: 16rem;
+  --artic-prose-width: 52.5rem;
+}
+
+@media (min-width: 50rem) {
+  :root {
+    --sl-sidebar-width: 20rem;
+  }
+}
+
 @media (min-width: 72rem) {
+  :root {
+    --sl-content-width: 100%;
+  }
+
   .main-pane {
     --sl-content-margin-inline: 0;
   }
 
   [data-has-sidebar][data-has-toc] .main-pane {
-    flex: none;
-    width: min(
-      calc(var(--sl-content-width) + 2 * var(--sl-content-pad-x)),
-      calc(100% - var(--sl-sidebar-width))
-    );
+    flex: 1;
+    width: auto;
+    min-width: 0;
   }
 
   [data-has-sidebar][data-has-toc] .right-sidebar-container {
-    flex: 1;
-    width: auto;
-    min-width: var(--sl-sidebar-width);
+    flex: none;
+    width: var(--artic-toc-width);
   }
+
+  .right-sidebar {
+    width: var(--artic-toc-width);
+  }
+
+  /* Starlight sizes this from --sl-sidebar-width, which is the left sidebar's width here. */
+  .right-sidebar-panel .sl-container {
+    width: auto;
+    max-width: none;
+  }
+
+  /* Headings sit in a .sl-heading-wrapper div, so cap the wrapper too. */
+  .sl-markdown-content > :is(p, ul, ol, dl, blockquote, h1, h2, h3, h4, h5, h6, .sl-heading-wrapper) {
+    max-width: var(--artic-prose-width);
+  }
+}
+
+.right-sidebar starlight-toc a {
+  font-size: 0.9375rem;
+}
+
+/* Center the search in the window; the title and the right-hand buttons share the rest. */
+@media (min-width: 50rem) {
+  .header {
+    grid-template-columns: 1fr minmax(0, 24rem) 1fr;
+  }
+
+  .header > :nth-child(2) button {
+    width: 100%;
+    max-width: none;
+  }
+
+  .header > :nth-child(3) {
+    justify-self: end;
+  }
+}
+
+/* Thin scrollbars in the theme's colors, for the page, the sidebars and code blocks. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sl-color-gray-4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--sl-color-gray-4) padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--sl-color-gray-3) padding-box;
 }
