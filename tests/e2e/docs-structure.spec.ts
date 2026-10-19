@@ -106,3 +106,34 @@ test.describe('docs layout at 1920px', () => {
     expect(gap).toBeLessThanOrEqual(56);
   });
 });
+
+for (const width of [1280, 1920, 2560]) {
+  test.describe(`docs text placement at ${width}px`, () => {
+    test.use({ viewport: { width, height: 1000 } });
+
+    const measure = (page: import('@playwright/test').Page) =>
+      page.evaluate(() => {
+        const sidebar = document.querySelector('.sidebar-pane')!.getBoundingClientRect();
+        const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
+        const toc = document.querySelector('.right-sidebar')?.getBoundingClientRect();
+        return {
+          left: text.left - sidebar.right,
+          right: toc ? toc.left - text.right : null,
+          tocInView: toc ? toc.left < innerWidth - 100 : null,
+        };
+      });
+
+    test('a page without sections starts the text next to the sidebar', async ({ page }) => {
+      await page.goto('/docs/start-here/install/');
+      expect((await measure(page)).left).toBeLessThanOrEqual(32);
+    });
+
+    test('a page with sections keeps text, then its table of contents, beside the sidebar', async ({ page }) => {
+      await page.goto('/docs/contributing/architecture/');
+      const m = await measure(page);
+      expect(m.left).toBeLessThanOrEqual(32);
+      expect(m.right).toBeLessThanOrEqual(32);
+      expect(m.tocInView).toBe(true);
+    });
+  });
+}
