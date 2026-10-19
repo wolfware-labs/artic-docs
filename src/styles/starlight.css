@@ -162,7 +162,6 @@ footer .meta:not(:has(*)) {
    titles so they read as navigation rather than another heading. They stack on phones. */
 .pagination-links {
   display: flex;
-  flex-wrap: wrap;
   justify-content: space-between;
 }
 
@@ -178,9 +177,17 @@ footer .meta:not(:has(*)) {
   margin-inline-start: auto;
 }
 
+/* Narrow columns shrink the cards; only phones stack them. */
 @media (max-width: 50rem) {
-  .pagination-links a {
-    flex-basis: 100%;
+  .pagination-links {
+    flex-direction: column;
+  }
+
+  .pagination-links a,
+  .pagination-links a[rel='next'] {
+    flex-basis: auto;
+    width: 100%;
+    margin-inline-start: 0;
   }
 }
 

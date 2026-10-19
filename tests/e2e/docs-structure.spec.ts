@@ -310,3 +310,37 @@ test.describe('previous and next links', () => {
     expect(size).toBeLessThanOrEqual(16);
   });
 });
+
+test.describe('previous and next links on a laptop', () => {
+  test.use({ viewport: { width: 1280, height: 900 } });
+
+  test('stay on one row beside the table of contents', async ({ page }) => {
+    await page.goto('/docs/contributing/design/border/');
+    const tops = await page
+      .locator('.pagination-links a')
+      .evaluateAll((links) => links.map((a) => Math.round(a.getBoundingClientRect().top)));
+    expect(tops).toHaveLength(2);
+    expect(tops[0]).toBe(tops[1]);
+  });
+});
+
+test.describe('previous and next links on a phone', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  test('stack at the full width of the text', async ({ page }) => {
+    await page.goto('/docs/contributing/design/border/');
+    const m = await page.evaluate(() => {
+      const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
+      return [...document.querySelectorAll('.pagination-links a')].map((a) => {
+        const r = a.getBoundingClientRect();
+        return { left: Math.round(r.left - text.left), right: Math.round(text.right - r.right), top: Math.round(r.top) };
+      });
+    });
+    expect(m).toHaveLength(2);
+    expect(m[1].top).toBeGreaterThan(m[0].top);
+    for (const card of m) {
+      expect(Math.abs(card.left)).toBeLessThanOrEqual(1);
+      expect(Math.abs(card.right)).toBeLessThanOrEqual(1);
+    }
+  });
+});
