@@ -122,13 +122,77 @@ test.describe('code blocks', () => {
     });
   }
 
-  test('rustdoc-style fences are highlighted as Rust', async ({ page }) => {
-    await page.goto('/docs/contributing/design/host/');
-    const block = page.locator('.expressive-code pre').first();
+  for (const [path, heading] of [
+    ['/docs/contributing/design/host/', null],
+    ['/docs/contributing/design/border/', '2-the-inner-shape-and-the-ring'],
+  ] as const) {
+  test(`rustdoc-style fences are highlighted as Rust on ${path}`, async ({ page }) => {
+    await page.goto(path);
+    // Starlight wraps each heading in a div, so the code blocks are siblings of the wrapper.
+    const scope = heading ? page.locator(`.sl-heading-wrapper:has([id="${heading}"]) ~ .expressive-code`) : page;
+    const block = scope.locator('pre').first();
     await expect(block).toHaveAttribute('data-language', 'rust');
     const colors = await block.evaluate(
       (pre) => new Set([...pre.querySelectorAll('span[style]')].map((s) => getComputedStyle(s).color)).size,
     );
     expect(colors).toBeGreaterThan(2);
   });
+  }
 });
+
+test.describe('docs header title', () => {
+  test('shows the artic wordmark linking home and a Docs link', async ({ page }) => {
+    await page.goto('/docs/concepts/signals/');
+    const title = page.locator('header .site-title');
+    const home = title.getByRole('link', { name: 'artic', exact: true });
+    await expect(home).toHaveAttribute('href', '/');
+    await expect(home.locator('img')).toHaveAttribute('src', '/brand/artic-logo.png');
+    expect(await home.evaluate((a) => getComputedStyle(a).fontFamily)).toMatch(/Barlow Condensed/);
+    await expect(title.getByRole('link', { name: 'Docs', exact: true })).toHaveAttribute('href', '/docs/');
+  });
+
+  test('fits a phone header next to the search and menu buttons', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/docs/concepts/signals/');
+    const box = await page.locator('header .site-title').boundingBox();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(375 - 96);
+  });
+});
+
+for (const width of [1280, 1920, 2560]) {
+  test.describe(`docs text placement at ${width}px`, () => {
+    test.use({ viewport: { width, height: 1000 } });
+
+    const measure = (page: import('@playwright/test').Page) =>
+      page.evaluate(() => {
+        const sidebar = document.querySelector('.sidebar-pane')!.getBoundingClientRect();
+        const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
+        const toc = document.querySelector('.right-sidebar')?.getBoundingClientRect();
+        // The .right-sidebar box itself is fixed and as wide as the viewport (Starlight's
+        // own styles), so check the links a reader sees and the page width instead.
+        const links = [...document.querySelectorAll('starlight-toc a')].map((a) => a.getBoundingClientRect());
+        return {
+          left: text.left - sidebar.right,
+          right: toc ? toc.left - text.right : null,
+          tocInView: toc ? links.length > 0 && links.every((l) => l.left >= toc.left && l.right <= innerWidth) : null,
+          noSideScroll: document.documentElement.scrollWidth <= innerWidth,
+        };
+      });
+
+    test('a page without sections starts the text next to the sidebar', async ({ page }) => {
+      await page.goto('/docs/start-here/install/');
+      const m = await measure(page);
+      expect(m.left).toBeLessThanOrEqual(32);
+      expect(m.noSideScroll).toBe(true);
+    });
+
+    test('a page with sections keeps text, then its table of contents, beside the sidebar', async ({ page }) => {
+      await page.goto('/docs/contributing/architecture/');
+      const m = await measure(page);
+      expect(m.left).toBeLessThanOrEqual(32);
+      expect(m.right).toBeLessThanOrEqual(32);
+      expect(m.tocInView).toBe(true);
+      expect(m.noSideScroll).toBe(true);
+    });
+  });
+}

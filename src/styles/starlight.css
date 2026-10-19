@@ -71,3 +71,26 @@ footer .meta:not(:has(*)) {
   background: transparent;
   text-align: center;
 }
+
+/* Starlight centers the text in the space beside the sidebar, which leaves a wide empty gap on
+   big screens. Keep the text next to the sidebar and the table of contents right after it, so
+   spare width ends up past the table of contents instead. */
+@media (min-width: 72rem) {
+  .main-pane {
+    --sl-content-margin-inline: 0;
+  }
+
+  [data-has-sidebar][data-has-toc] .main-pane {
+    flex: none;
+    width: min(
+      calc(var(--sl-content-width) + 2 * var(--sl-content-pad-x)),
+      calc(100% - var(--sl-sidebar-width))
+    );
+  }
+
+  [data-has-sidebar][data-has-toc] .right-sidebar-container {
+    flex: 1;
+    width: auto;
+    min-width: var(--sl-sidebar-width);
+  }
+}

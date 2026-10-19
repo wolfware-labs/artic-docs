@@ -1,0 +1,53 @@
+---
+// The landing page's wordmark, so the docs read as the same site, plus a link to the docs home.
+---
+
+<div class="site-title" translate="no">
+  <a class="wordmark" href="/">
+    <img src="/brand/artic-logo.png" alt="" width="32" height="32" />
+    <span>artic</span>
+  </a>
+  <a class="section" href="/docs/">Docs</a>
+</div>
+
+<style>
+  .site-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .site-title a {
+    text-decoration: none;
+  }
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font: 700 23px/1 var(--font-display);
+    letter-spacing: 0.4px;
+    color: var(--sl-color-white);
+  }
+  /* The logo is a square crop of the wolf on its navy background. */
+  .wordmark img {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+  }
+  .section {
+    padding-left: 14px;
+    border-left: 1px solid var(--sl-color-hairline);
+    font: 500 16px/22px var(--font-body);
+    color: var(--sl-color-gray-2);
+  }
+  .section:hover,
+  .wordmark:hover {
+    color: var(--sl-color-white);
+  }
+  .site-title a:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+</style>

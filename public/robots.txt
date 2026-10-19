@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://artic.rs/sitemap-index.xml
