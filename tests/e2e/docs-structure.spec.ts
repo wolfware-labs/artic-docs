@@ -115,8 +115,9 @@ test.describe('code blocks', () => {
       await expect(diagrams.first().locator('svg')).toBeVisible({ timeout: 15000 });
       for (const d of await diagrams.all()) {
         await expect(d.locator('svg')).toBeVisible({ timeout: 15000 });
-        // mermaid draws its parse errors as an SVG too.
+        // mermaid draws its parse errors as an SVG too, so require drawn nodes.
         await expect(d.locator('svg[aria-roledescription="error"]')).toHaveCount(0);
+        await expect(d.locator('svg .node').first()).toBeVisible();
       }
     });
   }
