@@ -251,3 +251,22 @@ test.describe('pre-release banner', () => {
     expect((r + g + b) / 3).toBeGreaterThan(200);
   });
 });
+
+test.describe('mermaid diagram placement', () => {
+  test.use({ viewport: { width: 1920, height: 1000 } });
+
+  test('every diagram is centered in the text column', async ({ page }) => {
+    await page.goto('/docs/contributing/spec/technical-spec/');
+    const diagrams = page.locator('.sl-markdown-content pre.mermaid');
+    for (const d of await diagrams.all()) await expect(d.locator('svg .node').first()).toBeAttached({ timeout: 15000 });
+    const offsets = await diagrams.evaluateAll((pres) =>
+      pres.map((pre) => {
+        const box = pre.getBoundingClientRect();
+        const svg = pre.querySelector('svg')!.getBoundingClientRect();
+        return Math.abs((svg.left + svg.right) / 2 - (box.left + box.right) / 2);
+      }),
+    );
+    expect(offsets.length).toBeGreaterThan(0);
+    for (const o of offsets) expect(o).toBeLessThanOrEqual(2);
+  });
+});

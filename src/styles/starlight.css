@@ -65,6 +65,11 @@ footer .meta:not(:has(*)) {
   text-align: center;
 }
 
+/* mermaid sizes each diagram with a max-width; center the narrower ones in the column. */
+.sl-markdown-content pre.mermaid svg {
+  margin-inline: auto;
+}
+
 /* Wide screens: the text column fills the space between the sidebar and a fixed-width table of
    contents on the right edge. Code, tables and diagrams use that width; prose keeps a readable
    line length. */
