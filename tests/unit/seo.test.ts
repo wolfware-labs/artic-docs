@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { shareImageVersion } from '../../src/lib/seo.mjs';
 
 describe('shareImageVersion', () => {
-  it('is a 10-character hex hash of the file', () => {
-    expect(shareImageVersion(Buffer.from('card'))).toMatch(/^[0-9a-f]{10}$/);
+  it('is the first 10 hex characters of the SHA-256 of the file', () => {
+    // printf 'card' | sha256sum
+    expect(shareImageVersion(Buffer.from('card'))).toBe('8367cd66fd');
   });
 
   it('changes when the file changes and not otherwise', () => {
