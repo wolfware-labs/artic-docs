@@ -125,3 +125,41 @@ test.describe('docs header title', () => {
     expect(box!.x + box!.width).toBeLessThanOrEqual(375 - 96);
   });
 });
+
+for (const width of [1280, 1920, 2560]) {
+  test.describe(`docs text placement at ${width}px`, () => {
+    test.use({ viewport: { width, height: 1000 } });
+
+    const measure = (page: import('@playwright/test').Page) =>
+      page.evaluate(() => {
+        const sidebar = document.querySelector('.sidebar-pane')!.getBoundingClientRect();
+        const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
+        const toc = document.querySelector('.right-sidebar')?.getBoundingClientRect();
+        // The .right-sidebar box itself is fixed and as wide as the viewport (Starlight's
+        // own styles), so check the links a reader sees and the page width instead.
+        const links = [...document.querySelectorAll('starlight-toc a')].map((a) => a.getBoundingClientRect());
+        return {
+          left: text.left - sidebar.right,
+          right: toc ? toc.left - text.right : null,
+          tocInView: toc ? links.length > 0 && links.every((l) => l.left >= toc.left && l.right <= innerWidth) : null,
+          noSideScroll: document.documentElement.scrollWidth <= innerWidth,
+        };
+      });
+
+    test('a page without sections starts the text next to the sidebar', async ({ page }) => {
+      await page.goto('/docs/start-here/install/');
+      const m = await measure(page);
+      expect(m.left).toBeLessThanOrEqual(32);
+      expect(m.noSideScroll).toBe(true);
+    });
+
+    test('a page with sections keeps text, then its table of contents, beside the sidebar', async ({ page }) => {
+      await page.goto('/docs/contributing/architecture/');
+      const m = await measure(page);
+      expect(m.left).toBeLessThanOrEqual(32);
+      expect(m.right).toBeLessThanOrEqual(32);
+      expect(m.tocInView).toBe(true);
+      expect(m.noSideScroll).toBe(true);
+    });
+  });
+}

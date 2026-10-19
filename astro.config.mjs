@@ -6,11 +6,14 @@ import starlightVersions from 'starlight-versions';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { docsearchEnabled, searchPlugins } from './src/lib/search.mjs';
+import { SHARE_IMAGE, SHARE_IMAGE_ALT, SITE_NAME } from './src/lib/seo.mjs';
 import { versionsPluginConfig } from './src/lib/versions.mjs';
 
 const archived = JSON.parse(readFileSync(new URL('./versions.json', import.meta.url), 'utf8'));
 const versionsConfig = versionsPluginConfig(archived);
 const docsearch = docsearchEnabled(process.env);
+const SITE = 'https://artic.rs';
+const shareImage = new URL(SHARE_IMAGE, SITE).href;
 const stub = fileURLToPath(new URL('./src/components/docs/NoPlugin.astro', import.meta.url));
 
 function starlightPlugins() {
@@ -24,7 +27,7 @@ function starlightPlugins() {
 }
 
 export default defineConfig({
-  site: 'https://artic.rs',
+  site: SITE,
   // The newsletter e2e builds a second copy of the site with the form switched on.
   outDir: process.env.ARTIC_OUT_DIR || 'dist',
   vite: {
@@ -45,9 +48,18 @@ export default defineConfig({
   integrations: [
     react(),
     starlight({
-      title: 'artic',
+      title: SITE_NAME,
       // Starlight asks for /favicon.svg by default; point it at the logo the landing page uses.
       favicon: '/brand/artic-logo.png',
+      // Starlight sets the page's own title, description and URL; add the card shown when shared.
+      head: [
+        { tag: 'meta', attrs: { property: 'og:site_name', content: SITE_NAME } },
+        { tag: 'meta', attrs: { property: 'og:image', content: shareImage } },
+        { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+        { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+        { tag: 'meta', attrs: { property: 'og:image:alt', content: SHARE_IMAGE_ALT } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: shareImage } },
+      ],
       plugins: starlightPlugins(),
       routeMiddleware: './src/route-middleware.ts',
       // DocSearch replaces Pagefind, which would otherwise index the build for nothing.
