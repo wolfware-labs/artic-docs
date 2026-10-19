@@ -164,3 +164,19 @@ footer .meta:not(:has(*)) {
 *::-webkit-scrollbar-thumb:hover {
   background: var(--sl-color-gray-3) padding-box;
 }
+
+/* Previous and next links: as wide as the prose, not the whole text column, with body-size
+   titles so they read as navigation rather than another heading. */
+.pagination-links {
+  max-width: var(--artic-prose-width);
+}
+
+.pagination-links a {
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+}
+
+.pagination-links .link-title {
+  font-size: var(--sl-text-base);
+  font-weight: 500;
+}
