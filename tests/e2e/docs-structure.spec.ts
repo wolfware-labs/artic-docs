@@ -208,9 +208,9 @@ for (const width of [1280, 1920, 2560]) {
       expect(m.tocWidth).toBe(256);
       expect(m.tocInView).toBe(true);
       expect(m.noSideScroll).toBe(true);
-      // Prose keeps a readable line length even when the column is wider.
-      expect(m.paraWidth).toBeLessThanOrEqual(840);
-      expect(m.headingWidth).toBeLessThanOrEqual(840);
+      // Prose uses the whole column, like code blocks do.
+      expect(m.paraWidth).toBe(m.textWidth);
+      expect(m.headingWidth).toBe(m.textWidth);
     });
 
     test('the header search sits in the middle of the window', async ({ page }) => {
@@ -277,10 +277,19 @@ test.describe('mermaid diagram placement', () => {
 test.describe('previous and next links', () => {
   test.use({ viewport: { width: 1920, height: 1000 } });
 
-  test('stay as wide as the prose, not the whole column', async ({ page }) => {
+  test('sit at the two edges of the text column, at a compact size', async ({ page }) => {
     await page.goto('/docs/concepts/signals/');
-    const width = await page.locator('.pagination-links').evaluate((e) => e.getBoundingClientRect().width);
-    expect(width).toBeLessThanOrEqual(840);
+    const m = await page.evaluate(() => {
+      const text = document.querySelector('main .sl-container')!.getBoundingClientRect();
+      const box = (rel: string) => document.querySelector(`.pagination-links a[rel="${rel}"]`)!.getBoundingClientRect();
+      const prev = box('prev');
+      const next = box('next');
+      return { prevLeft: prev.left - text.left, nextRight: text.right - next.right, prevWidth: prev.width, nextWidth: next.width };
+    });
+    expect(Math.abs(m.prevLeft)).toBeLessThanOrEqual(1);
+    expect(Math.abs(m.nextRight)).toBeLessThanOrEqual(1);
+    expect(m.prevWidth).toBeLessThanOrEqual(420);
+    expect(m.nextWidth).toBeLessThanOrEqual(420);
   });
 
   test('use body-size titles, not heading-size ones', async ({ page }) => {

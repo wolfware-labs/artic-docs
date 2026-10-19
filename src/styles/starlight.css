@@ -71,11 +71,9 @@ footer .meta:not(:has(*)) {
 }
 
 /* Wide screens: the text column fills the space between the sidebar and a fixed-width table of
-   contents on the right edge. Code, tables and diagrams use that width; prose keeps a readable
-   line length. */
+   contents on the right edge. */
 :root {
   --artic-toc-width: 16rem;
-  --artic-prose-width: 52.5rem;
 }
 
 @media (min-width: 50rem) {
@@ -112,11 +110,6 @@ footer .meta:not(:has(*)) {
   .right-sidebar-panel .sl-container {
     width: auto;
     max-width: none;
-  }
-
-  /* Headings sit in a .sl-heading-wrapper div, so cap the wrapper too. */
-  .sl-markdown-content > :is(p, ul, ol, dl, blockquote, h1, h2, h3, h4, h5, h6, .sl-heading-wrapper) {
-    max-width: var(--artic-prose-width);
   }
 }
 
@@ -165,15 +158,30 @@ footer .meta:not(:has(*)) {
   background: var(--sl-color-gray-3) padding-box;
 }
 
-/* Previous and next links: as wide as the prose, not the whole text column, with body-size
-   titles so they read as navigation rather than another heading. */
+/* Previous and next links: compact cards at the two edges of the text column, with body-size
+   titles so they read as navigation rather than another heading. They stack on phones. */
 .pagination-links {
-  max-width: var(--artic-prose-width);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .pagination-links a {
+  flex: 0 1 26rem;
+  width: auto;
   padding: 0.75rem 1rem;
   font-size: 0.8125rem;
+}
+
+/* With only a next link, keep it on the right. */
+.pagination-links a[rel='next'] {
+  margin-inline-start: auto;
+}
+
+@media (max-width: 50rem) {
+  .pagination-links a {
+    flex-basis: 100%;
+  }
 }
 
 .pagination-links .link-title {
