@@ -106,3 +106,28 @@ test.describe('docs layout at 1920px', () => {
     expect(gap).toBeLessThanOrEqual(56);
   });
 });
+
+test.describe('code blocks', () => {
+  for (const path of ['/docs/contributing/architecture/', '/docs/contributing/spec/technical-spec/']) {
+    test(`mermaid fences render as diagrams on ${path}`, async ({ page }) => {
+      await page.goto(path);
+      const diagrams = page.locator('.sl-markdown-content pre.mermaid');
+      await expect(diagrams.first().locator('svg')).toBeVisible({ timeout: 15000 });
+      for (const d of await diagrams.all()) {
+        await expect(d.locator('svg')).toBeVisible({ timeout: 15000 });
+        // mermaid draws its parse errors as an SVG too.
+        await expect(d.locator('svg[aria-roledescription="error"]')).toHaveCount(0);
+      }
+    });
+  }
+
+  test('rustdoc-style fences are highlighted as Rust', async ({ page }) => {
+    await page.goto('/docs/contributing/design/host/');
+    const block = page.locator('.expressive-code pre').first();
+    await expect(block).toHaveAttribute('data-language', 'rust');
+    const colors = await block.evaluate(
+      (pre) => new Set([...pre.querySelectorAll('span[style]')].map((s) => getComputedStyle(s).color)).size,
+    );
+    expect(colors).toBeGreaterThan(2);
+  });
+});

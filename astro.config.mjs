@@ -5,6 +5,8 @@ import starlightLinksValidator from 'starlight-links-validator';
 import starlightVersions from 'starlight-versions';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { satteri } from '@astrojs/markdown-satteri';
+import { codeBlocks } from './src/lib/code-blocks.mjs';
 import { docsearchEnabled, searchPlugins } from './src/lib/search.mjs';
 import { versionsPluginConfig } from './src/lib/versions.mjs';
 
@@ -27,6 +29,9 @@ export default defineConfig({
   site: 'https://artic.rs',
   // The newsletter e2e builds a second copy of the site with the form switched on.
   outDir: process.env.ARTIC_OUT_DIR || 'dist',
+  markdown: {
+    processor: satteri({ mdastPlugins: [codeBlocks] }),
+  },
   vite: {
     resolve: {
       // Our Banner and Search overrides render components from plugins that may be off.

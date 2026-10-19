@@ -62,3 +62,12 @@ h1, h2, h3, h4 {
 footer .meta:not(:has(*)) {
   display: none;
 }
+
+/* Mermaid diagrams: drawn by the docs head script in place of the fence's source. */
+.sl-markdown-content pre.mermaid {
+  padding: 0;
+  overflow-x: auto;
+  border: 0;
+  background: transparent;
+  text-align: center;
+}
