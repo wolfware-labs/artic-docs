@@ -174,6 +174,7 @@ for (const width of [1280, 1920, 2560]) {
           .map((a) => a.getBoundingClientRect())
           .filter((l) => l.width > 0);
         const para = box('.sl-markdown-content > p');
+        const heading = box('.sl-markdown-content > .sl-heading-wrapper');
         const search = box('div.header > :nth-child(2) button');
         return {
           sidebarWidth: sidebar.width,
@@ -183,6 +184,7 @@ for (const width of [1280, 1920, 2560]) {
           tocWidth: toc ? toc.width : null,
           tocInView: toc ? links.length > 0 && links.every((l) => l.left >= toc.left && l.right <= innerWidth) : null,
           paraWidth: para ? para.width : null,
+          headingWidth: heading ? heading.width : null,
           textWidth: text.width,
           searchOffCenter: search ? Math.abs(search.left + search.width / 2 - innerWidth / 2) : null,
           noSideScroll: document.documentElement.scrollWidth <= innerWidth,
@@ -208,6 +210,7 @@ for (const width of [1280, 1920, 2560]) {
       expect(m.noSideScroll).toBe(true);
       // Prose keeps a readable line length even when the column is wider.
       expect(m.paraWidth).toBeLessThanOrEqual(840);
+      expect(m.headingWidth).toBeLessThanOrEqual(840);
     });
 
     test('the header search sits in the middle of the window', async ({ page }) => {

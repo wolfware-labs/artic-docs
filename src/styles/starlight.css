@@ -114,7 +114,8 @@ footer .meta:not(:has(*)) {
     max-width: none;
   }
 
-  .sl-markdown-content > :is(p, ul, ol, dl, blockquote, h1, h2, h3, h4, h5, h6) {
+  /* Headings sit in a .sl-heading-wrapper div, so cap the wrapper too. */
+  .sl-markdown-content > :is(p, ul, ol, dl, blockquote, h1, h2, h3, h4, h5, h6, .sl-heading-wrapper) {
     max-width: var(--artic-prose-width);
   }
 }
