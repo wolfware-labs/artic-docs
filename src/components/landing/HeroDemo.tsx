@@ -117,7 +117,7 @@ export default function HeroDemo() {
       data-device={device}
       ref={root}
       role="img"
-      aria-label="A XAML sign-in view being edited, with the app window updating as it changes, shown on desktop, phone and tablet."
+      aria-label="A XAML sign-in view being edited, with the app window updating as it changes, shown on desktop, phone and tablet, with web coming soon."
     >
       <div className="hd-stage" aria-hidden="true">
         <div className="hd-device">
@@ -184,6 +184,10 @@ export default function HeroDemo() {
             {DEVICE_LABEL[d]}
           </span>
         ))}
+        {/* No web host yet: listed so it reads as planned, never part of the loop. */}
+        <span className="hd-soon">
+          Web<b className="hd-pill">SOON</b>
+        </span>
       </div>
     </div>
   );

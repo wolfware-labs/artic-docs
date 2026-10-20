@@ -25,6 +25,18 @@ test.describe('hero demo', () => {
     await expect(page.locator('.hero .hd-switch .on')).toHaveText('Phone');
   });
 
+  test('the switch lists web as coming soon and never lands on it', async ({ page }) => {
+    await page.goto('/');
+    const web = page.locator('.hero .hd-switch .hd-soon');
+    await expect(web).toContainText('Web');
+    await expect(web.locator('.hd-pill')).toHaveText('SOON');
+    // Through a full pass: desktop, phone, tablet and back to desktop.
+    for (const frame of ['phone', 'tablet', 'desktop']) {
+      await expect(page.locator(device)).toHaveAttribute('data-device', frame, { timeout: 15000 });
+      await expect(web).not.toHaveClass(/\bon\b/);
+    }
+  });
+
   test('the editor card shows every line in full', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);
