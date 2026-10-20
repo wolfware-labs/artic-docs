@@ -37,6 +37,26 @@ test.describe('hero demo', () => {
     }
   });
 
+  test('states the goal in the title, and the meta description repeats the subtitle', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.hero h1')).toHaveText('artic: Write the app.Run it everywhere.');
+    const sub = (await page.locator('.hero .sub').innerText()).replace(/\s+/g, ' ').trim();
+    expect(sub).toBe('Views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.');
+    await expect(page.locator('head meta[name="description"]')).toHaveAttribute('content', sub);
+  });
+
+  test('highlights XAML and Rust in the subtitle', async ({ page }) => {
+    await page.goto('/');
+    const marks = page.locator('.hero .sub strong');
+    await expect(marks).toHaveText(['XAML', 'Rust']);
+    const [mark, rest] = await Promise.all([
+      marks.first().evaluate((e) => ({ weight: Number(getComputedStyle(e).fontWeight), color: getComputedStyle(e).color })),
+      page.locator('.hero .sub').evaluate((e) => getComputedStyle(e).color),
+    ]);
+    expect(mark.weight).toBeGreaterThanOrEqual(600);
+    expect(mark.color).not.toBe(rest);
+  });
+
   test('the editor card shows every line in full', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);

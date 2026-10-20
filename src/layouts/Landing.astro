@@ -19,7 +19,8 @@ interface Props {
 
 const {
   title = 'artic: a cross-platform UI framework for Rust',
-  description = 'Views in XAML, logic in Rust, one GPU renderer that draws the same pixels on Windows, macOS, Linux, iOS and Android.',
+  // Same text as the hero's subtitle.
+  description = 'Views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.',
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
