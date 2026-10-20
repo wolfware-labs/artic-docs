@@ -260,7 +260,8 @@
   bottom: 0;
   transform: translateX(50%);
   display: grid;
-  grid-template-columns: repeat(3, 84px);
+  /* Three devices the loop visits, then web, wider for its pill. */
+  grid-template-columns: repeat(3, 84px) 104px;
   padding: 4px;
   border: 1px solid #23394d;
   border-radius: 999px;
@@ -291,6 +292,22 @@
 }
 .hd[data-device='phone'] .hd-thumb { transform: translateX(84px); }
 .hd[data-device='tablet'] .hd-thumb { transform: translateX(168px); }
+
+.hd-switch .hd-soon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  opacity: 0.6;
+}
+.hd-pill {
+  padding: 2px 6px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  font: 600 9.5px/1 var(--font-body);
+  letter-spacing: 0.06em;
+  color: var(--teal);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .hd-device,
@@ -357,5 +374,13 @@
     transform: none;
     margin: 20px auto 0;
     width: max-content;
+    /* Narrower columns so all four fit a 375px phone. */
+    grid-template-columns: repeat(3, 70px) 92px;
+    font-size: 12px;
   }
+  .hd-thumb {
+    width: 70px;
+  }
+  .hd[data-device='phone'] .hd-thumb { transform: translateX(70px); }
+  .hd[data-device='tablet'] .hd-thumb { transform: translateX(140px); }
 }

@@ -9,10 +9,10 @@ import HeroDemo from './HeroDemo';
     <slot name="nav" />
     <div class="body">
       <div class="copy">
-        <h1><span class="sr-only">artic: </span>Write the UI.<br />Rust does the rest.</h1>
+        <h1><span class="sr-only">artic: </span>Write the app.<br />Run it everywhere.</h1>
         <p class="sub">
-          Views in XAML, logic in Rust, one GPU renderer that draws the same pixels on Windows,
-          macOS, Linux, iOS and Android.
+          Views in <strong>XAML</strong>, logic in <strong>Rust</strong>, and one GPU renderer
+          that draws the same pixels on every platform.
         </p>
         <div class="btns">
           <a class="btn primary" href="#get-started">Get started</a>
@@ -78,6 +78,11 @@ import HeroDemo from './HeroDemo';
     font-size: 18px;
     line-height: 1.5;
     color: var(--mute);
+  }
+  /* The two things a reader works in, lifted out of the muted sentence. */
+  .sub strong {
+    font-weight: 600;
+    color: var(--line);
   }
   .btns {
     display: flex;
