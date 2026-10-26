@@ -42,10 +42,14 @@ const isPublished = (relPath) =>
 export const slugFor = (relPath) =>
   relPath.replace(/\.md$/, '').toLowerCase().replaceAll('_', '-');
 
-const titleFromFileName = (relPath) => {
-  const words = posix.basename(relPath, '.md').replaceAll(/[-_]+/g, ' ').trim();
-  return words.charAt(0).toUpperCase() + words.slice(1);
-};
+const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
+const titleFromFileName = (relPath) =>
+  capitalize(posix.basename(relPath, '.md').replaceAll(/[-_]+/g, ' ').trim());
+
+// Design notes open with "# Design: …"; their sidebar group already says so.
+const cleanTitle = (title, relPath) =>
+  relPath.startsWith('design/') ? capitalize(title.replace(/^Design:\s*/, '')) : title;
 
 function rewriteTarget(target, relPath) {
   if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('//')) return target;
@@ -97,7 +101,10 @@ export function transformDoc(source, relPath) {
     );
   }
   flush();
-  return { title: title ?? titleFromFileName(relPath), body: out.join('\n') };
+  return {
+    title: title === null ? titleFromFileName(relPath) : cleanTitle(title, relPath),
+    body: out.join('\n'),
+  };
 }
 
 async function walk(dir, base = '') {

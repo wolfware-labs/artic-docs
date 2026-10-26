@@ -8,9 +8,17 @@ import { syncContributorDocs, transformDoc } from '../../scripts/lib/contributor
 const FIXTURE = resolve(import.meta.dirname, '../fixtures/artic-docs');
 
 test('takes the title from the first H1 and drops it', () => {
-  const r = transformDoc('# Design: backend seams\n\nBody', 'design/backends.md');
-  expect(r.title).toBe('Design: backend seams');
+  const r = transformDoc('# Backend seams\n\nBody', 'design/backends.md');
+  expect(r.title).toBe('Backend seams');
   expect(r.body.trim()).toBe('Body');
+});
+
+test('design pages drop the "Design:" prefix the sidebar group already says', () => {
+  expect(transformDoc('# Design: backend seams', 'design/backends.md').title).toBe('Backend seams');
+  expect(transformDoc('# Design: the XAML compiler', 'design/xaml-compiler.md').title).toBe(
+    'The XAML compiler',
+  );
+  expect(transformDoc('# Design: x', 'architecture.md').title).toBe('Design: x');
 });
 
 test('falls back to the file name when there is no H1', () => {
@@ -105,5 +113,5 @@ test('written files carry quoted frontmatter titles', async () => {
   const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
   await syncContributorDocs({ sourceDir: FIXTURE, outDir: tmp });
   const out = await readFile(join(tmp, 'design/text.md'), 'utf8');
-  expect(out.startsWith('---\ntitle: "Design: text \\"shaping\\""\n---\n')).toBe(true);
+  expect(out.startsWith('---\ntitle: "Text \\"shaping\\""\n---\n')).toBe(true);
 });
