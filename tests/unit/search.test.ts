@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error plain ESM module without types
 import { docsearchEnabled, searchPlugins, versionFromPath } from '../../src/lib/search.mjs';
 
 const all = {

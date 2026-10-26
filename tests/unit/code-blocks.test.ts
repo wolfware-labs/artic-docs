@@ -1,6 +1,5 @@
 import { markdownToHtml } from 'satteri';
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error plain ESM module without types
 import { codeBlocks } from '../../src/lib/code-blocks.mjs';
 
 const render = (md: string) => markdownToHtml(md, { mdastPlugins: [codeBlocks] }).html;

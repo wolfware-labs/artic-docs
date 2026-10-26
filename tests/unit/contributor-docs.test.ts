@@ -2,7 +2,6 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-// @ts-expect-error plain .mjs module without types
 import { syncContributorDocs, transformDoc } from '../../scripts/lib/contributor-docs.mjs';
 
 const FIXTURE = resolve(import.meta.dirname, '../fixtures/artic-docs');
