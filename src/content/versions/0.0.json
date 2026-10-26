@@ -1,0 +1,81 @@
+{
+  "sidebar": [
+    {
+      "label": "Start here",
+      "items": [
+        "docs/start-here/install",
+        "docs/start-here/first-app",
+        "docs/start-here/project-tour",
+        "docs/start-here/examples"
+      ]
+    },
+    {
+      "label": "Tutorial",
+      "items": [
+        "docs/tutorial"
+      ]
+    },
+    {
+      "label": "Guides",
+      "items": [
+        "docs/guides/style-a-button",
+        "docs/guides/bind-a-list",
+        "docs/guides/add-a-screen",
+        "docs/guides/ship-to-ios"
+      ]
+    },
+    {
+      "label": "Concepts",
+      "items": [
+        "docs/concepts/signals",
+        "docs/concepts/compiled-bindings",
+        "docs/concepts/layout",
+        "docs/concepts/styling",
+        "docs/concepts/host-and-renderer"
+      ]
+    },
+    {
+      "label": "Reference",
+      "items": [
+        "docs/reference/controls",
+        "docs/reference/markup-extensions",
+        "docs/reference/cli"
+      ]
+    },
+    {
+      "label": "Contributing",
+      "items": [
+        {
+          "autogenerate": {
+            "directory": "docs/contributing"
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    "docs/contributing/architecture",
+    "docs/contributing/design/backends",
+    "docs/contributing/design/border",
+    "docs/contributing/design/brush",
+    "docs/contributing/design/builder-api",
+    "docs/contributing/design/dsl-neutral",
+    "docs/contributing/design/element",
+    "docs/contributing/design/frame",
+    "docs/contributing/design/golden-images",
+    "docs/contributing/design/host",
+    "docs/contributing/design/layout-tests",
+    "docs/contributing/design/loader-values",
+    "docs/contributing/design/naming-review",
+    "docs/contributing/design/panels",
+    "docs/contributing/design/shapes",
+    "docs/contributing/design/surface",
+    "docs/contributing/design/text",
+    "docs/contributing/design/text-block",
+    "docs/contributing/design/ui-class",
+    "docs/contributing/design/value-objects",
+    "docs/contributing/design/xaml-compiler",
+    "docs/contributing/spec/dsl",
+    "docs/contributing/spec/technical-spec"
+  ]
+}
