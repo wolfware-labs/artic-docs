@@ -255,6 +255,19 @@
   .xs[data-live='true'] .xs-narrow-body {
     flex: 1;
     min-height: 0;
+    position: relative;
+  }
+
+  /* The stack gets the whole height while it is alone, and shrinks to clear the callouts as
+     it moves aside. They fade in only after that. */
+  .xs[data-live='true'] .xs-narrow {
+    flex: none;
+    height: calc(100% - var(--xs-room, 1) * (var(--xs-callouts-h, 0px) + 8px));
+  }
+
+  .xs[data-live='true'] .xs-callouts {
+    position: absolute;
+    inset: auto 0 0;
   }
 
   .xs-one {
