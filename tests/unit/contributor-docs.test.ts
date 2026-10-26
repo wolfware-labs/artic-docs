@@ -42,6 +42,29 @@ test('leaves external links, anchors and fenced code alone', () => {
   expect(r.body).toContain('[c](d.md)');
 });
 
+test('links issue and pull request numbers to the framework repo', () => {
+  const issue = (n: number) => `[#${n}](https://github.com/wolfware-labs/artic/issues/${n})`;
+  const r = transformDoc(
+    "# T\nIssue: #240. Implemented by: #33 (renderer), (#39) | #54 | #43's walk",
+    'design/backends.md',
+  );
+  expect(r.body).toBe(
+    `Issue: ${issue(240)}. Implemented by: ${issue(33)} (renderer), (${issue(39)}) | ${issue(54)} | ${issue(43)}'s walk`,
+  );
+});
+
+test('leaves anchors, colors, code and existing links without issue links', () => {
+  const src = [
+    '# T',
+    '[spec](#6-controls) [six](#6) `#12` [#7](https://x.dev/7) Background="#3B82F6" &#123; a#1',
+    '```',
+    "invalid Color '#12'",
+    '```',
+  ].join('\n');
+  const r = transformDoc(src, 'design/brush.md');
+  expect(r.body).not.toContain('/issues/');
+});
+
 test('sync copies only the published set', async () => {
   const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
   const written: string[] = await syncContributorDocs({ sourceDir: FIXTURE, outDir: tmp });

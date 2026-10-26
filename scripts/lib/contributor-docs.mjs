@@ -3,6 +3,20 @@ import { dirname, join, posix } from 'node:path';
 
 const SITE_BASE = '/docs/contributing/';
 const GITHUB_BLOB = 'https://github.com/wolfware-labs/artic/blob/main/docs/';
+const GITHUB_ISSUES = 'https://github.com/wolfware-labs/artic/issues/';
+
+// `#123` as GitHub would link it, but not a heading anchor (`](#6)`, `#6-controls`), a hex
+// color, an entity (`&#123;`), an existing link's text or a quoted value.
+const ISSUE_REF = /(?<![\w&/#'"[\]-]|\]\()#(\d{1,5})(?![\w-])/g;
+
+// Inline code spans keep their text.
+const linkIssues = (line) =>
+  line
+    .split(/(`+[^`]*`+)/)
+    .map((part, i) =>
+      i % 2 ? part : part.replace(ISSUE_REF, (_, n) => `[#${n}](${GITHUB_ISSUES}${n})`),
+    )
+    .join('');
 
 // Only these framework docs are published; everything else stays on GitHub.
 const isPublished = (relPath) =>
@@ -54,8 +68,10 @@ export function transformDoc(source, relPath) {
       }
     }
     out.push(
-      line.replace(/(\]\()([^)\s]+)(\))/g, (_, open, target, close) =>
-        `${open}${rewriteTarget(target, relPath)}${close}`,
+      linkIssues(
+        line.replace(/(\]\()([^)\s]+)(\))/g, (_, open, target, close) =>
+          `${open}${rewriteTarget(target, relPath)}${close}`,
+        ),
       ),
     );
   }
