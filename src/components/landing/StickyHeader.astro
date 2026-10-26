@@ -34,14 +34,28 @@ const sections = [
   </div>
 </header>
 
+<!-- Outside the bar: its transform would make this fixed element scroll with it. -->
+<a class="to-top" href="#top" data-shown="false" inert aria-label="Back to top">
+  <span class="shard" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="20" height="20">
+      <path d="M6 14.5 12 8.5l6 6" fill="none" stroke="currentColor" stroke-width="2.2"
+        stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </span>
+</a>
+
 <script>
   const bar = document.querySelector<HTMLElement>('header.bar');
+  const toTop = document.querySelector<HTMLElement>('.to-top');
   const heroNav = document.querySelector('.hero .nav');
 
   if (bar && heroNav) {
     const show = (on: boolean) => {
-      bar.dataset.shown = String(on);
-      bar.inert = !on;
+      for (const el of [bar, toTop]) {
+        if (!el) continue;
+        el.dataset.shown = String(on);
+        el.inert = !on;
+      }
     };
     // The bar takes over once the hero's own nav has scrolled out of view.
     new IntersectionObserver(([entry]) => show(!entry.isIntersecting)).observe(heroNav);
@@ -73,32 +87,135 @@ const sections = [
 </script>
 
 <style>
+  /* Frosted ice: the page shows through blurred and cooled, with a fine grain like rime. */
+  .bar,
+  .shard {
+    --frost-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+  }
   .bar {
     position: fixed;
     inset: 0 0 auto;
     z-index: 50;
     height: var(--header-h);
-    background: rgb(15 27 38 / 0.72);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
-    border-bottom: 1px solid rgb(108 195 192 / 0.14);
-    box-shadow: 0 10px 30px -18px rgb(0 0 0 / 0.8);
+    /* Brighter than --mute: light content can sit behind the glass, like the demo window. */
+    --bar-ink: color-mix(in srgb, var(--mute) 45%, var(--line));
+    background:
+      linear-gradient(180deg, rgb(227 238 246 / 0.1), rgb(143 168 232 / 0.04)),
+      rgb(15 27 38 / 0.68);
+    box-shadow:
+      inset 0 1px 0 rgb(227 238 246 / 0.1),
+      0 12px 32px -20px rgb(0 0 0 / 0.9);
     transform: translateY(-100%);
     opacity: 0;
     transition:
       transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1),
       opacity 0.2s ease;
   }
+  .bar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--frost-grain);
+    opacity: 0.07;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+  /* The lower edge catches the light toward the middle, like a cut sheet of ice. */
+  .bar::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(108 195 192 / 0.55) 35%,
+      rgb(143 168 232 / 0.45) 65%,
+      transparent
+    );
+  }
   .bar[data-shown='true'] {
     transform: none;
     opacity: 1;
   }
+
+  /* Back to top: a hexagonal shard of the same ice, split into a lit and a shaded facet. */
+  .to-top {
+    position: fixed;
+    right: max(24px, env(safe-area-inset-right));
+    bottom: max(24px, env(safe-area-inset-bottom));
+    z-index: 50;
+    width: 48px;
+    height: 54px;
+    color: var(--line);
+    border-radius: 10px;
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+    transition:
+      transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+      opacity 0.2s ease;
+  }
+  .to-top[data-shown='true'] {
+    opacity: 1;
+    transform: none;
+  }
+  .shard {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    background:
+      linear-gradient(90deg, rgb(227 238 246 / 0.16) 50%, rgb(74 120 168 / 0.1) 50%),
+      linear-gradient(180deg, rgb(108 195 192 / 0.22), rgb(143 168 232 / 0.08)),
+      rgb(15 27 38 / 0.5);
+    transition: background 0.25s ease;
+  }
+  .shard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--frost-grain);
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+  }
+  .shard svg {
+    position: relative;
+    filter: drop-shadow(0 1px 2px rgb(6 18 28 / 0.6));
+    transition: transform 0.25s ease;
+  }
+  .to-top:hover .shard {
+    background:
+      linear-gradient(90deg, rgb(227 238 246 / 0.24) 50%, rgb(74 120 168 / 0.16) 50%),
+      linear-gradient(180deg, rgb(108 195 192 / 0.34), rgb(143 168 232 / 0.12)),
+      rgb(15 27 38 / 0.5);
+  }
+  .to-top:hover .shard svg {
+    transform: translateY(-2px);
+  }
+  .to-top:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 3px;
+  }
+  @media (max-width: 600px) {
+    .to-top {
+      right: max(16px, env(safe-area-inset-right));
+      bottom: max(16px, env(safe-area-inset-bottom));
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .bar {
+    .bar,
+    .to-top,
+    .shard,
+    .shard svg {
       transition: none;
     }
   }
   .inner {
+    position: relative;
     height: 100%;
     display: flex;
     align-items: center;
@@ -136,7 +253,7 @@ const sections = [
     display: block;
     padding: 6px 0;
     font-size: 14px;
-    color: var(--mute);
+    color: var(--bar-ink);
     transition: color 0.2s;
   }
   /* The underline grows in on the section being read. */
@@ -166,7 +283,7 @@ const sections = [
     font-size: 14px;
   }
   .link {
-    color: var(--mute);
+    color: var(--bar-ink);
   }
   .link:hover {
     color: var(--line);
