@@ -123,6 +123,41 @@ describe('frame', () => {
     expect(center(0.45)).toBeGreaterThan(NARROW.cx);
   });
 
+  it('draws the narrow slabs larger until the stack moves aside', () => {
+    const zoom = NARROW.zoom!;
+    const slab = (p: number) => frame(p, NARROW)[0].main;
+    for (const p of [0, 0.2, 0.38]) {
+      expect(slab(p).w).toBeCloseTo(NARROW.w * zoom);
+      expect(slab(p).t).toBeCloseTo(NARROW.t * zoom);
+    }
+    expect(slab(0.45).w).toBeLessThan(NARROW.w * zoom);
+    expect(slab(0.45).w).toBeGreaterThan(NARROW.w);
+    expect(slab(0.5).w).toBe(NARROW.w);
+    expect(slab(0.5).t).toBe(NARROW.t);
+  });
+
+  it('thickens the closed narrow stack with its slabs and keeps the open gap', () => {
+    const gap = (p: number) => frame(p, NARROW)[1].main.cy - frame(p, NARROW)[0].main.cy;
+    expect(gap(0)).toBeCloseTo(NARROW.gapClosed * NARROW.zoom!);
+    expect(gap(0.38)).toBe(NARROW.gapOpen);
+  });
+
+  it('keeps the middle of the narrow stack where it was before the zoom', () => {
+    const half = (LAYERS.length - 1) / 2;
+    const mid = (p: number) => {
+      const f = frame(p, NARROW);
+      return (f[0].main.cy + f[f.length - 1].main.cy) / 2;
+    };
+    expect(mid(0)).toBeCloseTo(NARROW.topClosed + half * NARROW.gapClosed);
+    expect(mid(0.38)).toBeCloseTo(NARROW.topOpen + half * NARROW.gapOpen);
+  });
+
+  it('draws the wide slabs at their own size', () => {
+    expect(WIDE.zoom).toBeUndefined();
+    expect(frame(0, WIDE)[0].main.w).toBe(WIDE.w);
+    expect(frame(0, WIDE)[0].main.t).toBe(WIDE.t);
+  });
+
   it('keeps the wide stack where it is', () => {
     expect(frame(0, WIDE)[0].main.cx).toBe(WIDE.cx);
     expect(frame(0.45, WIDE)[0].main.cx).toBe(WIDE.cx);
