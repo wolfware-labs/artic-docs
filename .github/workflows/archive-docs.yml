@@ -20,8 +20,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
       # No stored credentials, so install scripts and the build never see a token.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,11 +36,21 @@ jobs:
           VERSION: ${{ github.event.client_payload.version || inputs.version }}
       - run: pnpm test
         if: steps.archive.outputs.added == 'true'
+      # GitHub doesn't start workflows for a pull request opened with
+      # github.token, so CI would never report on it. The bot app's token does.
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        if: steps.archive.outputs.added == 'true'
+        id: token
+        with:
+          client-id: ${{ vars.DOCS_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.DOCS_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
       - name: Open the pull request
         if: steps.archive.outputs.added == 'true'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          token: ${{ github.token }}
+          token: ${{ steps.token.outputs.token }}
           sign-commits: true
           base: main
           branch: docs/archive-${{ steps.archive.outputs.slug }}
