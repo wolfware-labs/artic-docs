@@ -65,6 +65,14 @@ test('leaves anchors, colors, code and existing links without issue links', () =
   expect(r.body).not.toContain('/issues/');
 });
 
+test('code spans with longer delimiters or over two lines keep their text', () => {
+  const src = '# T\n`` `#12` `` and `a\n#13` &amp;#14; then #15';
+  const r = transformDoc(src, 'design/brush.md');
+  expect(r.body).toBe(
+    '`` `#12` `` and `a\n#13` &amp;#14; then [#15](https://github.com/wolfware-labs/artic/issues/15)',
+  );
+});
+
 test('sync copies only the published set', async () => {
   const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
   const written: string[] = await syncContributorDocs({ sourceDir: FIXTURE, outDir: tmp });

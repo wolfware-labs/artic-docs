@@ -6,17 +6,24 @@ const GITHUB_BLOB = 'https://github.com/wolfware-labs/artic/blob/main/docs/';
 const GITHUB_ISSUES = 'https://github.com/wolfware-labs/artic/issues/';
 
 // `#123` as GitHub would link it, but not a heading anchor (`](#6)`, `#6-controls`), a hex
-// color, an entity (`&#123;`), an existing link's text or a quoted value.
-const ISSUE_REF = /(?<![\w&/#'"[\]-]|\]\()#(\d{1,5})(?![\w-])/g;
+// color, an entity (`&#123;`, `&amp;#123;`), an existing link's text or a quoted value.
+const ISSUE_REF = /(?<![\w&;/#'"[\]-]|\]\()#(\d{1,5})(?![\w-])/g;
 
-// Inline code spans keep their text.
-const linkIssues = (line) =>
-  line
-    .split(/(`+[^`]*`+)/)
-    .map((part, i) =>
-      i % 2 ? part : part.replace(ISSUE_REF, (_, n) => `[#${n}](${GITHUB_ISSUES}${n})`),
-    )
-    .join('');
+// A CommonMark code span: a backtick run closed by a run of the same length. It may wrap
+// lines but not cross a blank one.
+const CODE_SPAN = /(?<!`)(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])*?(?<!`)\1(?!`)/g;
+
+// Code spans keep their text.
+const linkIssues = (text) => {
+  const link = (part) => part.replace(ISSUE_REF, (_, n) => `[#${n}](${GITHUB_ISSUES}${n})`);
+  let out = '';
+  let from = 0;
+  for (const span of text.matchAll(CODE_SPAN)) {
+    out += link(text.slice(from, span.index)) + span[0];
+    from = span.index + span[0].length;
+  }
+  return out + link(text.slice(from));
+};
 
 // Only these framework docs are published; everything else stays on GitHub.
 const isPublished = (relPath) =>
@@ -48,11 +55,18 @@ export function transformDoc(source, relPath) {
   let title = null;
   let fence = null;
   const out = [];
+  // Text between fences, held so a code span that wraps a line is seen whole.
+  let prose = [];
+  const flush = () => {
+    if (prose.length) out.push(linkIssues(prose.join('\n')));
+    prose = [];
+  };
   for (const line of lines) {
     const marker = line.match(/^\s*(```+|~~~+)/)?.[1];
     if (marker) {
       if (!fence) fence = marker[0];
       else if (marker[0] === fence) fence = null;
+      flush();
       out.push(line);
       continue;
     }
@@ -67,14 +81,13 @@ export function transformDoc(source, relPath) {
         continue;
       }
     }
-    out.push(
-      linkIssues(
-        line.replace(/(\]\()([^)\s]+)(\))/g, (_, open, target, close) =>
-          `${open}${rewriteTarget(target, relPath)}${close}`,
-        ),
+    prose.push(
+      line.replace(/(\]\()([^)\s]+)(\))/g, (_, open, target, close) =>
+        `${open}${rewriteTarget(target, relPath)}${close}`,
       ),
     );
   }
+  flush();
   return { title: title ?? titleFromFileName(relPath), body: out.join('\n') };
 }
 
