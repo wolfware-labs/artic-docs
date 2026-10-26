@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error plain ESM module without types
 import { shareImageVersion } from '../../src/lib/seo.mjs';
 
 describe('shareImageVersion', () => {

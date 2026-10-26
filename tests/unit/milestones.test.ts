@@ -3,7 +3,7 @@ import snapshot from '../../src/data/milestones.snapshot.json';
 import { loadMilestones, milestoneStatus, parseTitle } from '../../src/lib/milestones';
 
 const api = (body: unknown, status = 200) =>
-  vi.fn(async () => new Response(JSON.stringify(body), { status }));
+  vi.fn(async (_url: string, _init?: RequestInit) => new Response(JSON.stringify(body), { status }));
 
 describe('milestoneStatus', () => {
   it('is done when nothing is open and something closed', () => {

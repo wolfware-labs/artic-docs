@@ -2,7 +2,6 @@ import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error plain ESM module without types
 import { addVersion, versionSlug, versionsPluginConfig } from '../../src/lib/versions.mjs';
 
 describe('versionSlug', () => {

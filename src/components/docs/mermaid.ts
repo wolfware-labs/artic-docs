@@ -1,5 +1,8 @@
 // Renders the `pre.mermaid` blocks the codeBlocks plugin emits. mermaid is large, so it is only
 // loaded on pages that have a diagram, and diagrams redraw when the theme changes.
+
+// Astro loads this as a module; the export tells tsc so, for the top-level awaits.
+export {};
 const diagrams = [...document.querySelectorAll<HTMLElement>('pre.mermaid')];
 
 if (diagrams.length > 0) {

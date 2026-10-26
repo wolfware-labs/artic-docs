@@ -19,6 +19,7 @@ jobs:
           docsearch-api-key: ${{ vars.PUBLIC_DOCSEARCH_API_KEY }}
           docsearch-index: ${{ vars.PUBLIC_DOCSEARCH_INDEX }}
           mailerlite-action: ${{ vars.PUBLIC_MAILERLITE_ACTION }}
+      - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e

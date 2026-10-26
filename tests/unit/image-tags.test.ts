@@ -1,5 +1,4 @@
 import { expect, test } from 'vitest';
-// @ts-expect-error plain .mjs module without types
 import { imageTags } from '../../scripts/lib/image-tags.mjs';
 
 const repo = 'docker.io/wolfware/artic-site';
