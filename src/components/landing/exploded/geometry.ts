@@ -215,7 +215,8 @@ export function frame(p: number, L: Layout): LayerFrame[] {
       leader,
       connector,
       crate: swaps && ph.plug > 0.5 ? layer.swap!.crate : layer.crate,
-      callout: ph.leaders,
+      // A list under the drawing waits until the stack has moved aside and made room for it.
+      callout: L.calloutX === null ? ph.alts : ph.leaders,
     };
   });
 }

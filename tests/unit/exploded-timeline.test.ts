@@ -152,6 +152,12 @@ describe('frame', () => {
     expect(mid(0.38)).toBeCloseTo(NARROW.topOpen + half * NARROW.gapOpen);
   });
 
+  it('holds the narrow callouts back until the stack has moved aside', () => {
+    expect(frame(0.5, NARROW)[0].callout).toBe(0);
+    expect(frame(0.68, NARROW)[0].callout).toBe(1);
+    expect(frame(0.5, WIDE)[0].callout).toBeGreaterThan(0);
+  });
+
   it('draws the wide slabs at their own size', () => {
     expect(WIDE.zoom).toBeUndefined();
     expect(frame(0, WIDE)[0].main.w).toBe(WIDE.w);

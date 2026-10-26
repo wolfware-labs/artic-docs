@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import './exploded.css';
 import { frame, NARROW, slabShapes, swapped, WIDE, type Layout, type Part } from './geometry';
 import { LAYERS, STACK_DESCRIPTION } from './layers';
-import { clamp, stageAt, STATIC_PROGRESS, step } from './timeline';
+import { clamp, phases, stageAt, STATIC_PROGRESS, step } from './timeline';
 
 const NARROW_QUERY = '(max-width: 899.98px)';
 const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
@@ -184,8 +184,21 @@ function Drawing({ progress, layout }: { progress: number; layout: Layout }) {
 /** Narrow screens: the callouts as a list under the drawing, keyed by each slab's color. */
 function Callouts({ progress }: { progress: number }) {
   const layers = frame(progress, NARROW);
+  const list = useRef<HTMLUListElement>(null);
+  // While pinned, the list sits over the bottom of the drawing; the drawing makes room for it
+  // as the stack moves aside, so it needs the list's height.
+  useEffect(() => {
+    const el = list.current;
+    if (!el) return;
+    const body = el.parentElement!;
+    const ro = new ResizeObserver(() =>
+      body.style.setProperty('--xs-callouts-h', `${el.offsetHeight}px`),
+    );
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
-    <ul className="xs-callouts" aria-hidden="true">
+    <ul ref={list} className="xs-callouts" aria-hidden="true">
       {layers.map((f) => (
         <li
           key={f.index}
@@ -339,7 +352,10 @@ export default function ExplodedStack() {
             </div>
             {mode !== 'narrow' && <Drawing progress={shown} layout={WIDE} />}
             {mode !== 'wide' && (
-              <div className="xs-narrow-body">
+              <div
+                className="xs-narrow-body"
+                style={{ '--xs-room': phases(shown).shift } as CSSProperties}
+              >
                 <Drawing progress={shown} layout={NARROW} />
                 <Callouts progress={shown} />
               </div>
