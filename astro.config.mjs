@@ -125,7 +125,18 @@ export default defineConfig({
         },
         {
           label: 'Contributing',
-          items: [{ autogenerate: { directory: 'docs/contributing' } }],
+          // Named groups: autogenerating the whole folder labels them "spec" and "design".
+          items: [
+            'docs/contributing/architecture',
+            {
+              label: 'Specifications',
+              items: [{ autogenerate: { directory: 'docs/contributing/spec' } }],
+            },
+            {
+              label: 'Design notes',
+              items: [{ autogenerate: { directory: 'docs/contributing/design' } }],
+            },
+          ],
         },
       ],
       customCss: ['./src/styles/tokens.css', './src/styles/starlight.css'],
