@@ -11,12 +11,14 @@ const ISSUE_REF = /(?<![\w&;/#'"[\]-]|\]\()#(\d{1,5})(?![\w-])/g;
 
 // Text whose #numbers stay as they are. First a CommonMark code span: a backtick run closed by
 // a run of the same length, which may wrap lines but not cross a blank one. Then an inline
-// link or image, an autolink, and a bare URL; the link target and the URL may hold one level
-// of balanced parentheses, as in `wiki/Foo_(bar)`.
+// link or image with an optional "title", 'title' or (title), an autolink, and a bare URL;
+// the link target and the URL may hold one level of balanced parentheses, as in
+// `wiki/Foo_(bar)`.
 const KEEP = new RegExp(
   [
     /(?<!`)(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])*?(?<!`)\1(?!`)/.source,
-    /!?\[[^\]\n]*\]\((?:[^()\s]|\([^()\s]*\))*\)/.source,
+    /!?\[[^\]\n]*\]\(\s*(?:[^()\s]|\([^()\s]*\))*(?:\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?\s*\)/
+      .source,
     /<[a-z][a-z0-9+.-]*:[^>\s]*>/.source,
     /\bhttps?:\/\/(?:[^\s<>()]|\([^\s<>()]*\))+/.source,
   ].join('|'),

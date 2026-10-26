@@ -80,6 +80,13 @@ test('links and URLs that already hold a #number keep their text', () => {
   );
 });
 
+test('link titles keep their #numbers', () => {
+  const src = `# T\n[a](https://x.test "Issue #12") [b](https://x.test 'see #13') [c](/d (#14)) #15`;
+  expect(transformDoc(src, 'design/brush.md').body).toBe(
+    `[a](https://x.test "Issue #12") [b](https://x.test 'see #13') [c](/d (#14)) [#15](https://github.com/wolfware-labs/artic/issues/15)`,
+  );
+});
+
 test('URLs with balanced parentheses keep their #numbers', () => {
   const src = '# T\n[w](https://x.test/a_(b)#12) https://x.test/c_(d)#13 (see #14)';
   expect(transformDoc(src, 'design/brush.md').body).toBe(
