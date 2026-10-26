@@ -145,6 +145,22 @@ test.describe('exploded stack at 375px', () => {
     await expect(root.locator('.xs-wide')).toHaveCount(0);
   });
 
+  test('shows the closed stack larger, then shrinks it to make room', async ({ page }) => {
+    await goLive(page);
+    // The left face of the top slab spans the slab's half-width.
+    const width = () =>
+      page
+        .locator('#how-it-works .xs-narrow polygon[fill="url(#narrow-0-l)"]')
+        .first()
+        .evaluate((el) => el.getBoundingClientRect().width);
+    await scrollTrackTo(page, 0);
+    await expect(island(page)).toHaveAttribute('data-progress', '0');
+    const closed = await width();
+    await scrollTrackTo(page, 0.72);
+    await expect(island(page)).toHaveAttribute('data-progress', '0.72');
+    expect(closed / (await width())).toBeCloseTo(1.25, 2);
+  });
+
   test('keeps the layer names inside the drawing', async ({ page }) => {
     await goLive(page);
     await scrollTrackTo(page, 0);
