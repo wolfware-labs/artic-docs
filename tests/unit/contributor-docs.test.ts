@@ -50,6 +50,70 @@ test('leaves external links, anchors and fenced code alone', () => {
   expect(r.body).toContain('[c](d.md)');
 });
 
+test('links issue and pull request numbers to the framework repo', () => {
+  const issue = (n: number) => `[#${n}](https://github.com/wolfware-labs/artic/issues/${n})`;
+  const r = transformDoc(
+    "# T\nIssue: #240. Implemented by: #33 (renderer), (#39) | #54 | #43's walk",
+    'design/backends.md',
+  );
+  expect(r.body).toBe(
+    `Issue: ${issue(240)}. Implemented by: ${issue(33)} (renderer), (${issue(39)}) | ${issue(54)} | ${issue(43)}'s walk`,
+  );
+});
+
+test('leaves anchors, colors, code and existing links without issue links', () => {
+  const src = [
+    '# T',
+    '[spec](#6-controls) [six](#6) `#12` [#7](https://x.dev/7) Background="#3B82F6" &#123; a#1',
+    '```',
+    "invalid Color '#12'",
+    '```',
+  ].join('\n');
+  const r = transformDoc(src, 'design/brush.md');
+  expect(r.body).not.toContain('/issues/');
+});
+
+test('links and URLs that already hold a #number keep their text', () => {
+  const src = '# T\n[Issue #12](https://x.test) https://x.test/?q=#13 <https://x.test/#14> #15';
+  expect(transformDoc(src, 'design/brush.md').body).toBe(
+    '[Issue #12](https://x.test) https://x.test/?q=#13 <https://x.test/#14> [#15](https://github.com/wolfware-labs/artic/issues/15)',
+  );
+});
+
+test('reference links, nested parentheses and escapes keep their #numbers', () => {
+  const src = [
+    '# T',
+    '[Issue #12][ref], [Issue #13][] and [x](https://x.test/a_(b_(c))#14) and \\#15 but #16',
+    '',
+    '[ref]: https://x.test/#17',
+    '[Issue #13]: https://x.test',
+  ].join('\n');
+  const body = transformDoc(src, 'design/brush.md').body;
+  expect(body.match(/\/issues\/\d+/g)).toEqual(['/issues/16']);
+});
+
+test('link titles keep their #numbers', () => {
+  const src = `# T\n[a](https://x.test "Issue #12") [b](https://x.test 'see #13') [c](/d (#14)) #15`;
+  expect(transformDoc(src, 'design/brush.md').body).toBe(
+    `[a](https://x.test "Issue #12") [b](https://x.test 'see #13') [c](/d (#14)) [#15](https://github.com/wolfware-labs/artic/issues/15)`,
+  );
+});
+
+test('URLs with balanced parentheses keep their #numbers', () => {
+  const src = '# T\n[w](https://x.test/a_(b)#12) https://x.test/c_(d)#13 (see #14)';
+  expect(transformDoc(src, 'design/brush.md').body).toBe(
+    '[w](https://x.test/a_(b)#12) https://x.test/c_(d)#13 (see [#14](https://github.com/wolfware-labs/artic/issues/14))',
+  );
+});
+
+test('code spans with longer delimiters or over two lines keep their text', () => {
+  const src = '# T\n`` `#12` `` and `a\n#13` &amp;#14; then #15';
+  const r = transformDoc(src, 'design/brush.md');
+  expect(r.body).toBe(
+    '`` `#12` `` and `a\n#13` &amp;#14; then [#15](https://github.com/wolfware-labs/artic/issues/15)',
+  );
+});
+
 test('sync copies only the published set', async () => {
   const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
   const written: string[] = await syncContributorDocs({ sourceDir: FIXTURE, outDir: tmp });

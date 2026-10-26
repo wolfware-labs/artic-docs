@@ -1,8 +1,45 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, posix } from 'node:path';
+import { fromMarkdown } from 'mdast-util-from-markdown';
+import { gfmFromMarkdown } from 'mdast-util-gfm';
+import { gfm } from 'micromark-extension-gfm';
 
 const SITE_BASE = '/docs/contributing/';
 const GITHUB_BLOB = 'https://github.com/wolfware-labs/artic/blob/main/docs/';
+const GITHUB_ISSUES = 'https://github.com/wolfware-labs/artic/issues/';
+
+// `#123` as GitHub would link it, but not a heading anchor (`#6-controls`), a hex color, an
+// entity (`&#123;`, `&amp;#123;`), an escape (`\#123`) or a quoted value.
+const ISSUE_REF = /(?<![\w&;/#'"\\-])#(\d{1,5})(?![\w-])/g;
+
+// Nodes whose text stays as written: links of every kind (GFM turns bare URLs into links too),
+// link definitions, code and raw HTML.
+const KEEP = new Set(['link', 'linkReference', 'definition', 'inlineCode', 'code', 'html']);
+
+const textRanges = (node, ranges = []) => {
+  if (KEEP.has(node.type)) return ranges;
+  if (node.type === 'text') ranges.push([node.position.start.offset, node.position.end.offset]);
+  for (const child of node.children ?? []) textRanges(child, ranges);
+  return ranges;
+};
+
+// Rewrites only the source of plain text nodes, so the rest of the Markdown is untouched.
+const linkIssues = (markdown) => {
+  const tree = fromMarkdown(markdown, {
+    extensions: [gfm()],
+    mdastExtensions: [gfmFromMarkdown()],
+  });
+  let out = '';
+  let from = 0;
+  for (const [start, end] of textRanges(tree)) {
+    out += markdown.slice(from, start);
+    out += markdown
+      .slice(start, end)
+      .replace(ISSUE_REF, (_, n) => `[#${n}](${GITHUB_ISSUES}${n})`);
+    from = end;
+  }
+  return out + markdown.slice(from);
+};
 
 // Only these framework docs are published; everything else stays on GitHub.
 const isPublished = (relPath) =>
@@ -65,7 +102,7 @@ export function transformDoc(source, relPath) {
   }
   return {
     title: title === null ? titleFromFileName(relPath) : cleanTitle(title, relPath),
-    body: out.join('\n'),
+    body: linkIssues(out.join('\n')),
   };
 }
 
