@@ -1,39 +1,44 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, posix } from 'node:path';
+import { fromMarkdown } from 'mdast-util-from-markdown';
+import { gfmFromMarkdown } from 'mdast-util-gfm';
+import { gfm } from 'micromark-extension-gfm';
 
 const SITE_BASE = '/docs/contributing/';
 const GITHUB_BLOB = 'https://github.com/wolfware-labs/artic/blob/main/docs/';
 const GITHUB_ISSUES = 'https://github.com/wolfware-labs/artic/issues/';
 
-// `#123` as GitHub would link it, but not a heading anchor (`](#6)`, `#6-controls`), a hex
-// color, an entity (`&#123;`, `&amp;#123;`), an existing link's text or a quoted value.
-const ISSUE_REF = /(?<![\w&;/#'"[\]-]|\]\()#(\d{1,5})(?![\w-])/g;
+// `#123` as GitHub would link it, but not a heading anchor (`#6-controls`), a hex color, an
+// entity (`&#123;`, `&amp;#123;`), an escape (`\#123`) or a quoted value.
+const ISSUE_REF = /(?<![\w&;/#'"\\-])#(\d{1,5})(?![\w-])/g;
 
-// Text whose #numbers stay as they are. First a CommonMark code span: a backtick run closed by
-// a run of the same length, which may wrap lines but not cross a blank one. Then an inline
-// link or image with an optional "title", 'title' or (title), an autolink, and a bare URL;
-// the link target and the URL may hold one level of balanced parentheses, as in
-// `wiki/Foo_(bar)`.
-const KEEP = new RegExp(
-  [
-    /(?<!`)(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])*?(?<!`)\1(?!`)/.source,
-    /!?\[[^\]\n]*\]\(\s*(?:[^()\s]|\([^()\s]*\))*(?:\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?\s*\)/
-      .source,
-    /<[a-z][a-z0-9+.-]*:[^>\s]*>/.source,
-    /\bhttps?:\/\/(?:[^\s<>()]|\([^\s<>()]*\))+/.source,
-  ].join('|'),
-  'gi',
-);
+// Nodes whose text stays as written: links of every kind (GFM turns bare URLs into links too),
+// link definitions, code and raw HTML.
+const KEEP = new Set(['link', 'linkReference', 'definition', 'inlineCode', 'code', 'html']);
 
-const linkIssues = (text) => {
-  const link = (part) => part.replace(ISSUE_REF, (_, n) => `[#${n}](${GITHUB_ISSUES}${n})`);
+const textRanges = (node, ranges = []) => {
+  if (KEEP.has(node.type)) return ranges;
+  if (node.type === 'text') ranges.push([node.position.start.offset, node.position.end.offset]);
+  for (const child of node.children ?? []) textRanges(child, ranges);
+  return ranges;
+};
+
+// Rewrites only the source of plain text nodes, so the rest of the Markdown is untouched.
+const linkIssues = (markdown) => {
+  const tree = fromMarkdown(markdown, {
+    extensions: [gfm()],
+    mdastExtensions: [gfmFromMarkdown()],
+  });
   let out = '';
   let from = 0;
-  for (const span of text.matchAll(KEEP)) {
-    out += link(text.slice(from, span.index)) + span[0];
-    from = span.index + span[0].length;
+  for (const [start, end] of textRanges(tree)) {
+    out += markdown.slice(from, start);
+    out += markdown
+      .slice(start, end)
+      .replace(ISSUE_REF, (_, n) => `[#${n}](${GITHUB_ISSUES}${n})`);
+    from = end;
   }
-  return out + link(text.slice(from));
+  return out + markdown.slice(from);
 };
 
 // Only these framework docs are published; everything else stays on GitHub.
@@ -70,18 +75,11 @@ export function transformDoc(source, relPath) {
   let title = null;
   let fence = null;
   const out = [];
-  // Text between fences, held so a code span that wraps a line is seen whole.
-  let prose = [];
-  const flush = () => {
-    if (prose.length) out.push(linkIssues(prose.join('\n')));
-    prose = [];
-  };
   for (const line of lines) {
     const marker = line.match(/^\s*(```+|~~~+)/)?.[1];
     if (marker) {
       if (!fence) fence = marker[0];
       else if (marker[0] === fence) fence = null;
-      flush();
       out.push(line);
       continue;
     }
@@ -96,16 +94,15 @@ export function transformDoc(source, relPath) {
         continue;
       }
     }
-    prose.push(
+    out.push(
       line.replace(/(\]\()([^)\s]+)(\))/g, (_, open, target, close) =>
         `${open}${rewriteTarget(target, relPath)}${close}`,
       ),
     );
   }
-  flush();
   return {
     title: title === null ? titleFromFileName(relPath) : cleanTitle(title, relPath),
-    body: out.join('\n'),
+    body: linkIssues(out.join('\n')),
   };
 }
 

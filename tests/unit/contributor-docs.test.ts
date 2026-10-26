@@ -80,6 +80,18 @@ test('links and URLs that already hold a #number keep their text', () => {
   );
 });
 
+test('reference links, nested parentheses and escapes keep their #numbers', () => {
+  const src = [
+    '# T',
+    '[Issue #12][ref], [Issue #13][] and [x](https://x.test/a_(b_(c))#14) and \\#15 but #16',
+    '',
+    '[ref]: https://x.test/#17',
+    '[Issue #13]: https://x.test',
+  ].join('\n');
+  const body = transformDoc(src, 'design/brush.md').body;
+  expect(body.match(/\/issues\/\d+/g)).toEqual(['/issues/16']);
+});
+
 test('link titles keep their #numbers', () => {
   const src = `# T\n[a](https://x.test "Issue #12") [b](https://x.test 'see #13') [c](/d (#14)) #15`;
   expect(transformDoc(src, 'design/brush.md').body).toBe(
