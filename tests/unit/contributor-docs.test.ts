@@ -72,6 +72,13 @@ test('links and URLs that already hold a #number keep their text', () => {
   );
 });
 
+test('URLs with balanced parentheses keep their #numbers', () => {
+  const src = '# T\n[w](https://x.test/a_(b)#12) https://x.test/c_(d)#13 (see #14)';
+  expect(transformDoc(src, 'design/brush.md').body).toBe(
+    '[w](https://x.test/a_(b)#12) https://x.test/c_(d)#13 (see [#14](https://github.com/wolfware-labs/artic/issues/14))',
+  );
+});
+
 test('code spans with longer delimiters or over two lines keep their text', () => {
   const src = '# T\n`` `#12` `` and `a\n#13` &amp;#14; then #15';
   const r = transformDoc(src, 'design/brush.md');
