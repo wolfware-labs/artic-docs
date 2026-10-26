@@ -65,6 +65,13 @@ test('leaves anchors, colors, code and existing links without issue links', () =
   expect(r.body).not.toContain('/issues/');
 });
 
+test('links and URLs that already hold a #number keep their text', () => {
+  const src = '# T\n[Issue #12](https://x.test) https://x.test/?q=#13 <https://x.test/#14> #15';
+  expect(transformDoc(src, 'design/brush.md').body).toBe(
+    '[Issue #12](https://x.test) https://x.test/?q=#13 <https://x.test/#14> [#15](https://github.com/wolfware-labs/artic/issues/15)',
+  );
+});
+
 test('code spans with longer delimiters or over two lines keep their text', () => {
   const src = '# T\n`` `#12` `` and `a\n#13` &amp;#14; then #15';
   const r = transformDoc(src, 'design/brush.md');

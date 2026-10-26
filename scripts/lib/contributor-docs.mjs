@@ -9,16 +9,24 @@ const GITHUB_ISSUES = 'https://github.com/wolfware-labs/artic/issues/';
 // color, an entity (`&#123;`, `&amp;#123;`), an existing link's text or a quoted value.
 const ISSUE_REF = /(?<![\w&;/#'"[\]-]|\]\()#(\d{1,5})(?![\w-])/g;
 
-// A CommonMark code span: a backtick run closed by a run of the same length. It may wrap
-// lines but not cross a blank one.
-const CODE_SPAN = /(?<!`)(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])*?(?<!`)\1(?!`)/g;
+// Text whose #numbers stay as they are. First a CommonMark code span: a backtick run closed by
+// a run of the same length, which may wrap lines but not cross a blank one. Then an inline
+// link or image, an autolink, and a bare URL.
+const KEEP = new RegExp(
+  [
+    /(?<!`)(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])*?(?<!`)\1(?!`)/.source,
+    /!?\[[^\]\n]*\]\([^)\s]*\)/.source,
+    /<[a-z][a-z0-9+.-]*:[^>\s]*>/.source,
+    /\bhttps?:\/\/[^\s<>()]+/.source,
+  ].join('|'),
+  'gi',
+);
 
-// Code spans keep their text.
 const linkIssues = (text) => {
   const link = (part) => part.replace(ISSUE_REF, (_, n) => `[#${n}](${GITHUB_ISSUES}${n})`);
   let out = '';
   let from = 0;
-  for (const span of text.matchAll(CODE_SPAN)) {
+  for (const span of text.matchAll(KEEP)) {
     out += link(text.slice(from, span.index)) + span[0];
     from = span.index + span[0].length;
   }
