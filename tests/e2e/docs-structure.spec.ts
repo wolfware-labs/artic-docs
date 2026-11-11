@@ -146,7 +146,7 @@ test.describe('docs header title', () => {
     const title = page.locator('header .site-title');
     const home = title.getByRole('link', { name: 'artic', exact: true });
     await expect(home).toHaveAttribute('href', '/');
-    await expect(home.locator('img')).toHaveAttribute('src', '/brand/artic-logo.png');
+    await expect(home.locator('img')).toHaveAttribute('src', '/brand/artic-logo.svg');
     expect(await home.evaluate((a) => getComputedStyle(a).fontFamily)).toMatch(/Barlow Condensed/);
     await expect(title.getByRole('link', { name: 'Docs', exact: true })).toHaveAttribute('href', '/docs/');
   });
