@@ -21,7 +21,10 @@ pnpm install
 | `pnpm test` | Runs the unit and integration tests in `tests/` with Vitest. |
 | `pnpm test:e2e` | Builds the site with `ROADMAP_OFFLINE=1` into `dist-e2e/`, serves it and runs the Playwright tests, then runs `test:e2e:newsletter`. |
 | `pnpm test:e2e:newsletter` | Builds a copy with the newsletter form switched on into `dist-newsletter/` and runs the form tests against it. |
-| `pnpm og` | Renders the link-preview card into `public/og/artic.png` from `scripts/og-image.mjs`. Run it after changing the card. |
+
+Every page gets its own link-preview card, rendered during the build at `/og/<page>.png`
+by `src/pages/og/[...slug].png.ts` (layout in `src/lib/og.ts`). The landing card and each docs
+card take their text from the landing page and the page's frontmatter `title` and `description`.
 
 The e2e builds call `astro build` directly, so run `pnpm build` (or `pnpm dev`) once first
 to sync the contributor docs.

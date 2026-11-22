@@ -9,6 +9,8 @@
 
 :root {
   --bg: #0f1b26;
+  /* The light at the top of the hero's gradient. */
+  --glow: #1d3550;
   --panel: #0b151e;
   --edge: #21364a;
   --line: #e3eef6;

@@ -1,6 +1,7 @@
 ---
 import IceBackground from './IceBackground.astro';
 import HeroDemo from './HeroDemo';
+import { HERO_HEADING } from '../../lib/seo.mjs';
 ---
 
 <header class="hero">
@@ -9,7 +10,7 @@ import HeroDemo from './HeroDemo';
     <slot name="nav" />
     <div class="body">
       <div class="copy">
-        <h1><span class="sr-only">artic: </span>Write the app.<br />Run it everywhere.</h1>
+        <h1><span class="sr-only">artic: </span>{HERO_HEADING.map((line, i) => (i > 0 ? [<br />, line] : line))}</h1>
         <p class="sub">
           Views in <strong>XAML</strong>, logic in <strong>Rust</strong>, and one GPU renderer
           that draws the same pixels on every platform.
@@ -30,7 +31,7 @@ import HeroDemo from './HeroDemo';
   .hero {
     position: relative;
     overflow: hidden;
-    background: radial-gradient(120% 90% at 70% 10%, #1d3550 0%, var(--bg) 60%);
+    background: radial-gradient(120% 90% at 70% 10%, var(--glow) 0%, var(--bg) 60%);
     padding: 34px 0 72px;
     /* Fill the first screen so the next section stays out of view until the reader scrolls. */
     min-height: 100vh;
