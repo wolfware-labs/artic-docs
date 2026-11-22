@@ -8,22 +8,17 @@ import { fileURLToPath } from 'node:url';
 import { satteri } from '@astrojs/markdown-satteri';
 import { codeBlocks } from './src/lib/code-blocks.mjs';
 import { docsearchEnabled, searchPlugins } from './src/lib/search.mjs';
-import {
-  SHARE_IMAGE,
-  SHARE_IMAGE_ALT,
-  SHARE_IMAGE_HEIGHT,
-  SHARE_IMAGE_WIDTH,
-  SITE_NAME,
-  shareImageVersion,
-} from './src/lib/seo.mjs';
+import { OG_DESIGN_FILES, SITE, SITE_NAME, shareImageVersion } from './src/lib/seo.mjs';
 import { versionsPluginConfig } from './src/lib/versions.mjs';
 
 const archived = JSON.parse(readFileSync(new URL('./versions.json', import.meta.url), 'utf8'));
 const versionsConfig = versionsPluginConfig(archived);
 const docsearch = docsearchEnabled(process.env);
-const SITE = 'https://artic.rs';
-const shareImageFile = new URL(`./public${SHARE_IMAGE}`, import.meta.url);
-const shareImage = `${new URL(SHARE_IMAGE, SITE).href}?v=${shareImageVersion(readFileSync(shareImageFile))}`;
+// A hash of the files every share card is drawn from goes into each card's `?v=`, so a new
+// layout, logo or font makes link previews fetch the cards again.
+const ogDesign = shareImageVersion(
+  Buffer.concat(OG_DESIGN_FILES.map((path) => readFileSync(new URL(`./${path}`, import.meta.url)))),
+);
 const stub = fileURLToPath(new URL('./src/components/docs/NoPlugin.astro', import.meta.url));
 
 function starlightPlugins() {
@@ -44,8 +39,8 @@ export default defineConfig({
     processor: satteri({ mdastPlugins: [codeBlocks] }),
   },
   vite: {
-    // The landing page reads the versioned card URL computed above.
-    define: { 'import.meta.env.SHARE_IMAGE_URL': JSON.stringify(shareImage) },
+    // The landing layout and the docs route middleware version their card URLs with it.
+    define: { 'import.meta.env.OG_DESIGN_VERSION': JSON.stringify(ogDesign) },
     resolve: {
       // Our Banner and Search overrides render components from plugins that may be off.
       // A plugin that is off has no virtual modules, so point its components at an empty stub.
@@ -66,15 +61,11 @@ export default defineConfig({
       title: SITE_NAME,
       // Starlight asks for /favicon.svg by default; point it at the icon the landing page uses.
       favicon: '/brand/artic-logo.png',
-      // Starlight sets the page's own title, description and URL; add the card shown when shared.
+      // Site-wide tags only: Starlight sets each page's own title, description and URL, and
+      // src/route-middleware.ts adds the page's share card. A title here would apply to every page.
       head: [
         { tag: 'link', attrs: { rel: 'apple-touch-icon', href: '/brand/apple-touch-icon.png' } },
         { tag: 'meta', attrs: { property: 'og:site_name', content: SITE_NAME } },
-        { tag: 'meta', attrs: { property: 'og:image', content: shareImage } },
-        { tag: 'meta', attrs: { property: 'og:image:width', content: String(SHARE_IMAGE_WIDTH) } },
-        { tag: 'meta', attrs: { property: 'og:image:height', content: String(SHARE_IMAGE_HEIGHT) } },
-        { tag: 'meta', attrs: { property: 'og:image:alt', content: SHARE_IMAGE_ALT } },
-        { tag: 'meta', attrs: { name: 'twitter:image', content: shareImage } },
       ],
       plugins: starlightPlugins(),
       routeMiddleware: './src/route-middleware.ts',

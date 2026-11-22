@@ -62,6 +62,17 @@ get /docs
 [ "$(header Location)" = "/docs/" ] || fail "/docs Location is /docs/ (got $(header Location))"
 ok "/docs redirects to /docs/"
 
+# Share cards are rendered at build time; a page's og:image must point at one that exists.
+get /docs/concepts/signals/
+grep -q 'property="og:image" content="https://artic.rs/og/docs/concepts/signals.png?v=' "$tmp/b" ||
+  fail "/docs/concepts/signals/ links its own share card"
+for card in /og/index.png /og/docs/concepts/signals.png; do
+  get "$card"
+  [ "$status" = 200 ] || fail "$card returns 200 (got $status)"
+  [ "$(header Content-Type)" = "image/png" ] || fail "$card is a PNG (got $(header Content-Type))"
+  ok "$card is a PNG"
+done
+
 get /no-such-page/
 [ "$status" = 404 ] || fail "/no-such-page/ returns 404 (got $status)"
 grep -qF "$marker" "$tmp/b" || fail "404 body contains '$marker'"
