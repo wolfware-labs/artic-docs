@@ -5,8 +5,12 @@ export const SITE = 'https://artic.rs';
 export const SITE_NAME = 'artic';
 export const REPOSITORY = 'https://github.com/wolfware-labs/artic';
 
-/** The landing page's own text: its <title> and the hero's heading and subtitle. */
+/**
+ * The landing page's own text: its <title>, the hero's heading (one entry per line, rendered
+ * by Hero.astro) and the hero's subtitle, which is also the meta description.
+ */
 export const LANDING_TITLE = 'artic: a cross-platform UI framework for Rust';
+export const HERO_HEADING = ['Write the app.', 'Run it everywhere.'];
 export const LANDING_DESCRIPTION =
   'Views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.';
 
@@ -17,18 +21,25 @@ export const LANDING_DESCRIPTION =
 export const SHARE_IMAGE_WIDTH = 1200;
 export const SHARE_IMAGE_HEIGHT = 630;
 
-/**
- * The renderer (src/lib/og.ts), this file (card sizes and text), and the files the renderer
- * draws with; their hash versions every card.
- */
+/** What src/lib/og.ts draws with: the site's tokens, its logo, and its fonts. */
+export const OG_TOKENS = 'src/styles/tokens.css';
+export const OG_LOGO = 'public/brand/artic-logo.svg';
+// satori reads woff and ttf but not woff2, so these are the woff builds fontsource ships.
+const fontsource = (pkg, file) => `node_modules/@fontsource/${pkg}/files/${file}`;
+export const OG_FONTS = [
+  { name: 'Barlow Condensed', weight: 700, file: fontsource('barlow-condensed', 'barlow-condensed-latin-700-normal.woff') },
+  { name: 'Barlow', weight: 400, file: fontsource('barlow', 'barlow-latin-400-normal.woff') },
+  { name: 'Barlow', weight: 500, file: fontsource('barlow', 'barlow-latin-500-normal.woff') },
+  { name: 'JetBrains Mono', weight: 500, file: fontsource('jetbrains-mono', 'jetbrains-mono-latin-500-normal.woff') },
+];
+
+/** Every file a card is drawn from; their hash versions every card (astro.config.mjs). */
 export const OG_DESIGN_FILES = [
   'src/lib/og.ts',
   'src/lib/seo.mjs',
-  'public/brand/artic-logo.svg',
-  'node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff',
-  'node_modules/@fontsource/barlow/files/barlow-latin-400-normal.woff',
-  'node_modules/@fontsource/barlow/files/barlow-latin-500-normal.woff',
-  'node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff',
+  OG_TOKENS,
+  OG_LOGO,
+  ...OG_FONTS.map((font) => font.file),
 ];
 
 /** @typedef {{ key: string, eyebrow: string, title: string, description?: string }} Card */
@@ -37,12 +48,15 @@ export const OG_DESIGN_FILES = [
 export const LANDING_CARD = {
   key: 'index',
   eyebrow: 'A cross-platform UI framework for Rust',
-  title: 'Write the app. Run it everywhere.',
+  title: HERO_HEADING.join(' '),
   description: LANDING_DESCRIPTION,
 };
 
-// Sidebar labels for the folders under docs/, so a card names the section the reader sees.
-const SECTION_LABELS = {
+/**
+ * Labels of the folders under docs/. The sidebar in astro.config.mjs uses them too, so a card
+ * names the section the reader sees.
+ */
+export const SECTION_LABELS = {
   'start-here': 'Start here',
   tutorial: 'Tutorial',
   guides: 'Guides',

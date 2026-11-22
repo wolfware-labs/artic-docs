@@ -2,35 +2,40 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
-import { SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH, type Card } from './seo.mjs';
+import {
+  OG_FONTS,
+  OG_LOGO,
+  OG_TOKENS,
+  SHARE_IMAGE_HEIGHT,
+  SHARE_IMAGE_WIDTH,
+  type Card,
+} from './seo.mjs';
 
 const OG_WIDTH = SHARE_IMAGE_WIDTH;
 const OG_HEIGHT = SHARE_IMAGE_HEIGHT;
 
 // The build runs from the project root; import.meta.url points into the bundle, not at src/.
 const read = (path: string) => readFileSync(join(process.cwd(), path));
-const font = (pkg: string, file: string) => read(`node_modules/@fontsource/${pkg}/files/${file}`);
 
-// satori reads woff and ttf but not woff2, so these come from the woff builds fontsource ships.
-const fonts = [
-  { name: 'Barlow Condensed', data: font('barlow-condensed', 'barlow-condensed-latin-700-normal.woff'), weight: 700 },
-  { name: 'Barlow', data: font('barlow', 'barlow-latin-400-normal.woff'), weight: 400 },
-  { name: 'Barlow', data: font('barlow', 'barlow-latin-500-normal.woff'), weight: 500 },
-  { name: 'JetBrains Mono', data: font('jetbrains-mono', 'jetbrains-mono-latin-500-normal.woff'), weight: 500 },
-] as const;
+const fonts = OG_FONTS.map(({ name, weight, file }) => ({ name, weight, data: read(file) }));
 
 // The brand file as delivered, embedded unchanged. Its viewBox is 582x506.
-const logo = `data:image/svg+xml;base64,${read('public/brand/artic-logo.svg').toString('base64')}`;
+const logo = `data:image/svg+xml;base64,${read(OG_LOGO).toString('base64')}`;
 const logoSize = (width: number) => ({ width, height: Math.round((width * 506) / 582) });
 
-// Same palette as src/styles/tokens.css, and the hero's background gradient.
+// The site's palette, read from its tokens so a new colour there reaches the cards.
+const tokens = read(OG_TOKENS).toString('utf8');
+const token = (name: string) => {
+  const value = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{3,8})\\s*;`).exec(tokens)?.[1];
+  if (!value) throw new Error(`${OG_TOKENS} has no --${name} colour`);
+  return value;
+};
 const c = {
-  bg: '#0f1b26',
-  glow: '#1d3550',
-  line: '#e3eef6',
-  mute: '#8aa3b8',
-  teal: '#6cc3c0',
-  edge: '#21364a',
+  bg: token('bg'),
+  glow: token('glow'),
+  line: token('line'),
+  mute: token('mute'),
+  teal: token('teal'),
 };
 
 type Node = { type: string; props: Record<string, unknown> };

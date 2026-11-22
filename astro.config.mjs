@@ -8,7 +8,13 @@ import { fileURLToPath } from 'node:url';
 import { satteri } from '@astrojs/markdown-satteri';
 import { codeBlocks } from './src/lib/code-blocks.mjs';
 import { docsearchEnabled, searchPlugins } from './src/lib/search.mjs';
-import { OG_DESIGN_FILES, SITE, SITE_NAME, shareImageVersion } from './src/lib/seo.mjs';
+import {
+  OG_DESIGN_FILES,
+  SECTION_LABELS,
+  SITE,
+  SITE_NAME,
+  shareImageVersion,
+} from './src/lib/seo.mjs';
 import { versionsPluginConfig } from './src/lib/versions.mjs';
 
 const archived = JSON.parse(readFileSync(new URL('./versions.json', import.meta.url), 'utf8'));
@@ -79,7 +85,7 @@ export default defineConfig({
       },
       sidebar: [
         {
-          label: 'Start here',
+          label: SECTION_LABELS['start-here'],
           items: [
             'docs/start-here/install',
             'docs/start-here/first-app',
@@ -87,9 +93,9 @@ export default defineConfig({
             'docs/start-here/examples',
           ],
         },
-        { label: 'Tutorial', items: ['docs/tutorial'] },
+        { label: SECTION_LABELS.tutorial, items: ['docs/tutorial'] },
         {
-          label: 'Guides',
+          label: SECTION_LABELS.guides,
           items: [
             'docs/guides/style-a-button',
             'docs/guides/bind-a-list',
@@ -98,7 +104,7 @@ export default defineConfig({
           ],
         },
         {
-          label: 'Concepts',
+          label: SECTION_LABELS.concepts,
           items: [
             'docs/concepts/signals',
             'docs/concepts/compiled-bindings',
@@ -108,7 +114,7 @@ export default defineConfig({
           ],
         },
         {
-          label: 'Reference',
+          label: SECTION_LABELS.reference,
           items: [
             'docs/reference/controls',
             'docs/reference/markup-extensions',
@@ -116,16 +122,16 @@ export default defineConfig({
           ],
         },
         {
-          label: 'Contributing',
+          label: SECTION_LABELS.contributing,
           // Named groups: autogenerating the whole folder labels them "spec" and "design".
           items: [
             'docs/contributing/architecture',
             {
-              label: 'Specifications',
+              label: SECTION_LABELS.spec,
               items: [{ autogenerate: { directory: 'docs/contributing/spec' } }],
             },
             {
-              label: 'Design notes',
+              label: SECTION_LABELS.design,
               items: [{ autogenerate: { directory: 'docs/contributing/design' } }],
             },
           ],
