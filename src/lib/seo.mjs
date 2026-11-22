@@ -17,9 +17,13 @@ export const LANDING_DESCRIPTION =
 export const SHARE_IMAGE_WIDTH = 1200;
 export const SHARE_IMAGE_HEIGHT = 630;
 
-/** The renderer (src/lib/og.ts) and the files it draws with; their hash versions every card. */
+/**
+ * The renderer (src/lib/og.ts), this file (card sizes and text), and the files the renderer
+ * draws with; their hash versions every card.
+ */
 export const OG_DESIGN_FILES = [
   'src/lib/og.ts',
+  'src/lib/seo.mjs',
   'public/brand/artic-logo.svg',
   'node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff',
   'node_modules/@fontsource/barlow/files/barlow-latin-400-normal.woff',
@@ -86,8 +90,8 @@ export function shareImageVersion(bytes) {
 }
 
 /**
- * Absolute, versioned URL of a card. `design` is a hash of the renderer and its assets
- * (astro.config.mjs), so a change to the layout refreshes every card, and a page's new
+ * Absolute, versioned URL of a card. `design` is a hash of OG_DESIGN_FILES
+ * (astro.config.mjs), so a change to the layout or size refreshes every card, and a page's new
  * title or description refreshes its own.
  * @param {Card} card
  * @param {string} design

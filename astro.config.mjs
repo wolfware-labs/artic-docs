@@ -15,7 +15,7 @@ const archived = JSON.parse(readFileSync(new URL('./versions.json', import.meta.
 const versionsConfig = versionsPluginConfig(archived);
 const docsearch = docsearchEnabled(process.env);
 // A hash of the files every share card is drawn from goes into each card's `?v=`, so a new
-// layout, logo or font makes link previews fetch the cards again.
+// layout, size, logo or font makes link previews fetch the cards again.
 const ogDesign = shareImageVersion(
   Buffer.concat(OG_DESIGN_FILES.map((path) => readFileSync(new URL(`./${path}`, import.meta.url)))),
 );
