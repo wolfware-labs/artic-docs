@@ -28,6 +28,9 @@ describe('share cards', () => {
     expect(eyebrow('docs/concepts/signals')).toBe('Concepts');
     expect(eyebrow('docs/start-here/install')).toBe('Start here');
     expect(eyebrow('docs/contributing/spec/technical_spec')).toBe('Contributing · Specifications');
+    // starlight-versions archives a release under its version slug.
+    expect(eyebrow('0.1/docs')).toBe('0.1 · Docs');
+    expect(eyebrow('0.1/docs/concepts/signals')).toBe('0.1 · Concepts');
   });
 
   it('takes a docs card from the page frontmatter', () => {

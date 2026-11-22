@@ -56,14 +56,18 @@ const label = (part) => SECTION_LABELS[part] ?? part.replace(/-/g, ' ');
 
 /**
  * docs/concepts/signals -> "Concepts"; docs/contributing/spec/x -> "Contributing · Specifications";
- * a section index (docs/tutorial) is its own section, and docs/ itself is "Docs".
+ * a section index (docs/tutorial) is its own section, and docs/ itself is "Docs". An archived
+ * copy (starlight-versions writes it under its version, 0.1/docs/concepts/signals) starts with
+ * that version: "0.1 · Concepts".
  * @param {string} id
  */
 export function eyebrow(id) {
-  const parts = id.split('/').slice(1);
-  if (parts.length === 0 || parts[0] === '') return 'Docs';
-  const sections = parts.length > 1 ? parts.slice(0, -1) : parts;
-  return sections.map(label).join(' · ');
+  const all = id.split('/');
+  const at = all.indexOf('docs');
+  const version = at > 0 ? all.slice(0, at) : [];
+  const parts = all.slice(at + 1);
+  const sections = parts.length === 0 ? ['Docs'] : (parts.length > 1 ? parts.slice(0, -1) : parts).map(label);
+  return [...version, ...sections].join(' · ');
 }
 
 /**
