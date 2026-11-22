@@ -30,6 +30,13 @@ const token = (name: string) => {
   if (!value) throw new Error(`${OG_TOKENS} has no --${name} colour`);
   return value;
 };
+// A token colour with an alpha, for gradient stops (#rgb or #rrggbb).
+const rgba = (hex: string, alpha: number) => {
+  const digits = hex.slice(1);
+  const full = digits.length === 3 ? [...digits].map((d) => d + d).join('') : digits.slice(0, 6);
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16));
+  return `rgba(${r},${g},${b},${alpha})`;
+};
 const c = {
   bg: token('bg'),
   glow: token('glow'),
@@ -57,7 +64,7 @@ export async function renderCard({ eyebrow, title, description }: Card): Promise
       width: OG_WIDTH,
       height: OG_HEIGHT,
       backgroundColor: c.bg,
-      backgroundImage: `radial-gradient(circle at 78% 18%, ${c.glow} 0%, rgba(15,27,38,0) 60%), radial-gradient(circle at 84% 62%, rgba(108,195,192,0.14) 0%, rgba(108,195,192,0) 40%)`,
+      backgroundImage: `radial-gradient(circle at 78% 18%, ${c.glow} 0%, ${rgba(c.bg, 0)} 60%), radial-gradient(circle at 84% 62%, ${rgba(c.teal, 0.14)} 0%, ${rgba(c.teal, 0)} 40%)`,
       fontFamily: 'Barlow',
       color: c.line,
     },
