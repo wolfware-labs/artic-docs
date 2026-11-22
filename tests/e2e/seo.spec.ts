@@ -7,15 +7,14 @@ const meta = async (page: Page, attr: 'name' | 'property', key: string) => {
   return tag.getAttribute('content');
 };
 
-// Cards are laid out at 1200x630 and rendered at twice that, so they stay sharp after link
-// previews recompress them.
+// Cards are 1200x630, the size link previews show.
 const expectCard = async (request: APIRequestContext, image: string) => {
   const url = new URL(image);
   const res = await request.get(url.pathname + url.search);
   expect(res.status(), `${url.pathname} is served`).toBe(200);
   expect(res.headers()['content-type']).toBe('image/png');
   const png = await res.body();
-  expect({ width: png.readUInt32BE(16), height: png.readUInt32BE(20) }).toEqual({ width: 2400, height: 1260 });
+  expect({ width: png.readUInt32BE(16), height: png.readUInt32BE(20) }).toEqual({ width: 1200, height: 630 });
 };
 
 test('robots.txt allows crawling and points at the sitemap', async ({ request }) => {
@@ -60,8 +59,8 @@ test('the landing page carries canonical, social and structured data', async ({ 
   expect(alt).toBe('artic share card: Write the app. Run it everywhere.');
   expect(await meta(page, 'name', 'twitter:image:alt')).toBe(alt);
   await expectCard(request, image!);
-  expect(await meta(page, 'property', 'og:image:width')).toBe('2400');
-  expect(await meta(page, 'property', 'og:image:height')).toBe('1260');
+  expect(await meta(page, 'property', 'og:image:width')).toBe('1200');
+  expect(await meta(page, 'property', 'og:image:height')).toBe('630');
 
   const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent())!);
   expect(ld['@type']).toBe('SoftwareSourceCode');
@@ -76,8 +75,8 @@ test('docs pages carry their own share card and the site name', async ({ page, r
   expect(await meta(page, 'name', 'twitter:image')).toBe(image);
   expect(await meta(page, 'property', 'og:image:alt')).toBe('artic share card: Signals');
   expect(await meta(page, 'name', 'twitter:image:alt')).toBe('artic share card: Signals');
-  expect(await meta(page, 'property', 'og:image:width')).toBe('2400');
-  expect(await meta(page, 'property', 'og:image:height')).toBe('1260');
+  expect(await meta(page, 'property', 'og:image:width')).toBe('1200');
+  expect(await meta(page, 'property', 'og:image:height')).toBe('630');
   expect(await meta(page, 'property', 'og:site_name')).toBe('artic');
   // The title comes from the page, never from a site-wide tag.
   expect(await meta(page, 'property', 'og:title')).toBe('Signals');

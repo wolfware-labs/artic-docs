@@ -2,10 +2,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
-import { SHARE_IMAGE_WIDTH, type Card } from './seo.mjs';
+import { SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH, type Card } from './seo.mjs';
 
-export const OG_WIDTH = 1200;
-export const OG_HEIGHT = 630;
+const OG_WIDTH = SHARE_IMAGE_WIDTH;
+const OG_HEIGHT = SHARE_IMAGE_HEIGHT;
 
 // The build runs from the project root; import.meta.url points into the bundle, not at src/.
 const read = (path: string) => readFileSync(join(process.cwd(), path));
@@ -88,5 +88,5 @@ export async function renderCard({ eyebrow, title, description }: Card): Promise
   );
 
   const svg = await satori(tree as never, { width: OG_WIDTH, height: OG_HEIGHT, fonts: fonts as never });
-  return new Resvg(svg, { fitTo: { mode: 'width', value: SHARE_IMAGE_WIDTH } }).render().asPng();
+  return new Resvg(svg).render().asPng();
 }

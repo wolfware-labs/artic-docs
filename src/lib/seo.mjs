@@ -12,11 +12,10 @@ export const LANDING_DESCRIPTION =
 
 /**
  * Every page gets its own share card, rendered at build time by src/pages/og/[...slug].png.ts.
- * Cards are laid out at 1200x630 and rendered at twice that, so they stay sharp after
- * LinkedIn, Slack and others recompress them.
+ * Cards are 1200x630, the size link previews show.
  */
-export const SHARE_IMAGE_WIDTH = 2400;
-export const SHARE_IMAGE_HEIGHT = 1260;
+export const SHARE_IMAGE_WIDTH = 1200;
+export const SHARE_IMAGE_HEIGHT = 630;
 
 /** The renderer (src/lib/og.ts) and the files it draws with; their hash versions every card. */
 export const OG_DESIGN_FILES = [
