@@ -1,6 +1,6 @@
 name: Deploy
 
-# One file for all three triggers so run_number is a single increasing
+# One file for every trigger so run_number is a single increasing
 # sequence, which is what the cluster follows.
 on:
   push:
@@ -8,7 +8,16 @@ on:
   schedule:
     - cron: "23 6 * * *"
   workflow_dispatch:
+  # Sent by the framework repo when an issue in a milestone, or a milestone,
+  # changes, so the roadmap counts don't wait for the nightly build.
+  repository_dispatch:
+    types: [roadmap-changed]
 
+# One group, so deploys never overlap. A group keeps one pending run, and a newer
+# one replaces it whatever cancel-in-progress says: a rebuild that arrives while
+# a push run waits cancels it. The rebuild still builds main, so the site is
+# current; the release and site-<version> wait for the next push, whose
+# semantic-release run picks up the skipped commits.
 concurrency:
   group: deploy
   cancel-in-progress: false
@@ -70,7 +79,7 @@ jobs:
             docker push "$ref"
           done <<< "$refs"
         env:
-          # Nightly and manual runs rebuild the release commit, so only the push that made it moves site-<version>.
+          # Nightly, manual and dispatched runs rebuild the release commit, so only the push that made it moves site-<version>.
           RELEASE_TAGS: ${{ github.event_name == 'push' && 'true' || '' }}
           IMAGE_REPO: docker.io/wolfware/artic-site
           RUN_NUMBER: ${{ github.run_number }}
