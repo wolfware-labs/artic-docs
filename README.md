@@ -101,7 +101,9 @@ no release, and the image gets only its run-number tag. Each dispatch uses up a 
 number. Dispatched, nightly and manual runs share the `deploy-rebuild` concurrency
 group, which keeps a burst of them to one running build and one queued. Pushes have
 `deploy-push` to themselves, so a rebuild never replaces a queued push run and skips
-its release.
+its release. Since a rebuild can then run beside a push, it pushes its image only when
+`main` still points at the commit it built; otherwise the run for the newer commit
+publishes.
 
 ### Archiving from a framework release
 
