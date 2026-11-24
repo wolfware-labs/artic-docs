@@ -78,7 +78,7 @@ Three workflows under `.github/workflows/` build and ship the site.
 | Workflow | Runs on | What it does |
 | --- | --- | --- |
 | `ci.yml` | Pull requests to `main` | Runs the unit tests, the e2e tests and a smoke check of the Docker image. Nothing is pushed. |
-| `deploy.yml` | Pushes to `main`, nightly at 06:23 UTC, manual runs from `main` | Builds the site and the image, smoke-tests it and pushes it to Docker Hub. |
+| `deploy.yml` | Pushes to `main`, nightly at 06:23 UTC, a `roadmap-changed` dispatch, manual runs from `main` | Builds the site and the image, smoke-tests it and pushes it to Docker Hub. |
 | `archive-docs.yml` | A `framework-release` dispatch, or a manual run | Archives the docs for a framework release and opens a pull request. |
 
 On a push, the `release` job in `deploy.yml` runs semantic-release first. It tags
@@ -91,6 +91,15 @@ then pushes `docker.io/wolfware/artic-site` with these tags:
 | `site-<version>` | HEAD has a release tag and the run is a push | People. |
 
 There is no `latest` tag.
+
+### Refreshing the roadmap
+
+The roadmap counts come from the GitHub milestones API when the site builds. The
+framework repo's `roadmap-refresh.yml` sends `roadmap-changed` when an issue in a
+milestone, or a milestone itself, changes. `deploy.yml` then runs as it does at night:
+no release, and the image gets only its run-number tag. Each dispatch uses up a run
+number, and the `deploy` concurrency group keeps a burst of them to one running build
+and one queued.
 
 ### Archiving from a framework release
 
