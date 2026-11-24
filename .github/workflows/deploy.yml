@@ -13,8 +13,12 @@ on:
   repository_dispatch:
     types: [roadmap-changed]
 
+# A group keeps one pending run, and a newer one replaces it whatever
+# cancel-in-progress says. Pushes get a group of their own so a rebuild can't
+# replace a queued push run and skip its release. A rebuild can then run beside
+# a push; both build main, and the cluster takes the higher run number.
 concurrency:
-  group: deploy
+  group: deploy-${{ github.event_name == 'push' && 'push' || 'rebuild' }}
   cancel-in-progress: false
 
 jobs:

@@ -98,8 +98,10 @@ The roadmap counts come from the GitHub milestones API when the site builds. The
 framework repo's `roadmap-refresh.yml` sends `roadmap-changed` when an issue in a
 milestone, or a milestone itself, changes. `deploy.yml` then runs as it does at night:
 no release, and the image gets only its run-number tag. Each dispatch uses up a run
-number, and the `deploy` concurrency group keeps a burst of them to one running build
-and one queued.
+number. Dispatched, nightly and manual runs share the `deploy-rebuild` concurrency
+group, which keeps a burst of them to one running build and one queued. Pushes have
+`deploy-push` to themselves, so a rebuild never replaces a queued push run and skips
+its release.
 
 ### Archiving from a framework release
 
