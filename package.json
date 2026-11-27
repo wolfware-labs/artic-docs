@@ -33,10 +33,10 @@
     "@fontsource/barlow-condensed": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@resvg/resvg-js": "^2.6.2",
-    "astro": "^7.4.0",
+    "astro": "^7.4.12",
     "mdast-util-from-markdown": "2.1.0",
     "mdast-util-gfm": "3.1.0",
-    "mermaid": "12.1.0",
+    "mermaid": "12.3.0",
     "micromark-extension-gfm": "3.0.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -47,6 +47,9 @@
     "starlight-versions": "0.10.1"
   },
   "pnpm": {
-    "onlyBuiltDependencies": []
+    "onlyBuiltDependencies": [],
+    "overrides": {
+      "fflate@0.7.3": "0.7.5"
+    }
   }
 }
