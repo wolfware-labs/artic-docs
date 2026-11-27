@@ -1,6 +1,8 @@
-// Reads the output of `git diff-index --raw -z --no-renames`: for each entry,
-// ":<old mode> <new mode> <old sha> <new sha> <status>" and the path, each
-// ending in a NUL.
+/**
+ * Reads the output of `git diff-index --raw -z --no-renames`: for each entry,
+ * ":<old mode> <new mode> <old sha> <new sha> <status>" and the path, each
+ * ending in a NUL.
+ */
 export function parseRawDiff(raw) {
   const parts = raw.split('\0');
   const entries = [];

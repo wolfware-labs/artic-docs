@@ -49,6 +49,7 @@ describe('apply-archive', () => {
 
   function run(dir: string, patch: string, version: string) {
     const out = join(dir, '..', `${dir.split('/').pop()}-output`);
+    dirs.push(out);
     const result = spawnSync('node', ['scripts/apply-archive.mjs', patch, version], {
       cwd: dir,
       encoding: 'utf8',
