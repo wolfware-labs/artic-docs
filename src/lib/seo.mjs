@@ -12,7 +12,7 @@ export const REPOSITORY = 'https://github.com/wolfware-labs/artic';
 export const LANDING_TITLE = 'artic: a cross-platform UI framework for Rust';
 export const HERO_HEADING = ['Write the app.', 'Run it everywhere.'];
 export const LANDING_DESCRIPTION =
-  'Views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.';
+  'artic is a cross-platform UI framework for Rust: views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.';
 
 /**
  * Every page gets its own share card, rendered at build time by src/pages/og/[...slug].png.ts.
@@ -44,12 +44,16 @@ export const OG_DESIGN_FILES = [
 
 /** @typedef {{ key: string, eyebrow: string, title: string, description?: string }} Card */
 
-/** @type {Card} */
+/**
+ * The landing page's card, which the 404 page shares. Its eyebrow already says what artic is,
+ * so its description is shorter than the meta description and fits the card's three lines.
+ * @type {Card}
+ */
 export const LANDING_CARD = {
   key: 'index',
   eyebrow: 'A cross-platform UI framework for Rust',
   title: HERO_HEADING.join(' '),
-  description: LANDING_DESCRIPTION,
+  description: 'Views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.',
 };
 
 /**

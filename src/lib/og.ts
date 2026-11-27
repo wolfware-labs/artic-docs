@@ -53,7 +53,16 @@ const h = (type: string, style: Record<string, unknown>, children?: unknown, ext
 
 export const titleSize = (title: string) => (title.length > 40 ? 58 : title.length > 26 ? 68 : 80);
 
-export async function renderCard({ eyebrow, title, description }: Card): Promise<Buffer> {
+export async function renderCard(card: Card): Promise<Buffer> {
+  return new Resvg(await cardSvg(card)).render().asPng();
+}
+
+/**
+ * The card as satori draws it, before it becomes a PNG. The title and the description are cut
+ * at three lines with an ellipsis; with `embedFont: false` the text stays text, so the cut can
+ * be read from the result.
+ */
+export async function cardSvg({ eyebrow, title, description }: Card, { embedFont = true } = {}): Promise<string> {
   const big = logoSize(400);
   const small = logoSize(46);
   const tree = h(
@@ -99,6 +108,5 @@ export async function renderCard({ eyebrow, title, description }: Card): Promise
     ],
   );
 
-  const svg = await satori(tree as never, { width: OG_WIDTH, height: OG_HEIGHT, fonts: fonts as never });
-  return new Resvg(svg).render().asPng();
+  return satori(tree as never, { width: OG_WIDTH, height: OG_HEIGHT, fonts: fonts as never, embedFont });
 }
