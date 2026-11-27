@@ -16,13 +16,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  archive:
+  # Installs, builds and tests, so it holds no secrets and only a read token, and
+  # checkout stores no credentials. It hands the snapshot on as a patch.
+  snapshot:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      added: ${{ steps.archive.outputs.added }}
     steps:
-      # No stored credentials, so install scripts and the build never see a token.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -36,10 +39,49 @@ jobs:
           VERSION: ${{ github.event.client_payload.version || inputs.version }}
       - run: pnpm test
         if: steps.archive.outputs.added == 'true'
+      # versions.json stays out: the pull-request job writes it from the version.
+      - name: Write the snapshot patch
+        if: steps.archive.outputs.added == 'true'
+        run: |
+          git add -A -- src/content
+          git diff --cached --binary > "$RUNNER_TEMP/archive.patch"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.archive.outputs.added == 'true'
+        with:
+          name: archive-patch
+          path: ${{ runner.temp }}/archive.patch
+          if-no-files-found: error
+          retention-days: 1
+
+  # Holds the bot app's key, so it never installs dependencies or builds. It
+  # applies the patch only when it adds new files under the snapshot folders of
+  # the slug it computes from the version itself.
+  pull-request:
+    needs: snapshot
+    if: needs.snapshot.outputs.added == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      # Outside the work tree, so the pull request doesn't pick up the patch file.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: archive-patch
+          path: ${{ runner.temp }}/archive
+      - name: Apply the snapshot
+        id: apply
+        run: node scripts/apply-archive.mjs "$RUNNER_TEMP/archive/archive.patch" "$VERSION"
+        env:
+          VERSION: ${{ github.event.client_payload.version || inputs.version }}
       # GitHub doesn't start workflows for a pull request opened with
       # github.token, so CI would never report on it. The bot app's token does.
       - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        if: steps.archive.outputs.added == 'true'
         id: token
         with:
           client-id: ${{ vars.DOCS_BOT_CLIENT_ID }}
@@ -47,15 +89,14 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
       - name: Open the pull request
-        if: steps.archive.outputs.added == 'true'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ steps.token.outputs.token }}
           sign-commits: true
           base: main
-          branch: docs/archive-${{ steps.archive.outputs.slug }}
-          title: "docs: archive the ${{ steps.archive.outputs.slug }} docs"
-          commit-message: "docs: archive the ${{ steps.archive.outputs.slug }} docs"
+          branch: docs/archive-${{ steps.apply.outputs.slug }}
+          title: "docs: archive the ${{ steps.apply.outputs.slug }} docs"
+          commit-message: "docs: archive the ${{ steps.apply.outputs.slug }} docs"
           body: |
-            Archives the user docs for artic ${{ github.event.client_payload.version || inputs.version }} as /${{ steps.archive.outputs.slug }}/docs/.
+            Archives the user docs for artic ${{ github.event.client_payload.version || inputs.version }} as /${{ steps.apply.outputs.slug }}/docs/.
             Opened by the archive-docs workflow.

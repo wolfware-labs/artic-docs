@@ -40,11 +40,41 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-  deploy:
+  # Installs and builds, so it holds no secrets and only a read token.
+  build:
     needs: release
     if: >-
       always() && github.ref == 'refs/heads/main' &&
       (needs.release.result == 'success' || needs.release.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/build-site
+        with:
+          github-token: ${{ github.token }}
+          docsearch-app-id: ${{ vars.PUBLIC_DOCSEARCH_APP_ID }}
+          docsearch-api-key: ${{ vars.PUBLIC_DOCSEARCH_API_KEY }}
+          docsearch-index: ${{ vars.PUBLIC_DOCSEARCH_INDEX }}
+          mailerlite-action: ${{ vars.PUBLIC_MAILERLITE_ACTION }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: site
+          path: dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+
+  # Holds the Docker Hub token, so it never installs dependencies or builds: it
+  # packs the site the build job uploaded. image-tags.mjs imports only local
+  # code and Node built-ins.
+  publish:
+    needs: build
+    # Without always(), a skipped release job would skip this one too.
+    if: always() && needs.build.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -54,19 +84,20 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: ./.github/actions/build-site
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          github-token: ${{ github.token }}
-          docsearch-app-id: ${{ vars.PUBLIC_DOCSEARCH_APP_ID }}
-          docsearch-api-key: ${{ vars.PUBLIC_DOCSEARCH_API_KEY }}
-          docsearch-index: ${{ vars.PUBLIC_DOCSEARCH_INDEX }}
-          mailerlite-action: ${{ vars.PUBLIC_MAILERLITE_ACTION }}
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: site
+          path: dist/
+      - run: docker build -t artic-site:ci .
+      - run: bash scripts/smoke-image.sh artic-site:ci
+      # After the smoke test, so the token is on the runner for the push only.
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - run: docker build -t artic-site:ci .
-      - run: bash scripts/smoke-image.sh artic-site:ci
       - name: Push the tested image
         run: |
           refs="$(node scripts/image-tags.mjs)"
