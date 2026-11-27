@@ -45,5 +45,17 @@ for (const path of ['/', '/docs/start-here/install/']) {
     const res = await request.get('/brand/favicon-32.png');
     expect(res.status()).toBe(200);
     expect(res.headers()['content-type']).toContain('image/png');
+    // The PNG header (IHDR) holds the width and height as big-endian words
+    // at bytes 16 and 20; they must match the link's sizes="32x32".
+    const png32 = await res.body();
+    expect([png32.readUInt32BE(16), png32.readUInt32BE(20)]).toEqual([32, 32]);
+  });
+
+  test(`${path} declares every size the favicon.ico holds`, async ({ page }) => {
+    await page.goto(path);
+    // A sizes attribute must list what the file holds, or browsers skip its
+    // other images; Starlight writes the docs link with no sizes at all.
+    const sizes = await page.locator('link[rel~="icon"][href="/favicon.ico"]').getAttribute('sizes');
+    expect([null, '16x16 32x32 48x48']).toContain(sizes);
   });
 }
