@@ -41,7 +41,9 @@ test.describe('hero demo', () => {
     await page.goto('/');
     await expect(page.locator('.hero h1')).toHaveText('artic: Write the app.Run it everywhere.');
     const sub = (await page.locator('.hero .sub').innerText()).replace(/\s+/g, ' ').trim();
-    expect(sub).toBe('Views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.');
+    expect(sub).toBe(
+      'artic is a cross-platform UI framework for Rust: views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.',
+    );
     await expect(page.locator('head meta[name="description"]')).toHaveAttribute('content', sub);
   });
 

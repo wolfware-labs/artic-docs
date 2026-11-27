@@ -1,12 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import {
   LANDING_CARD,
+  LANDING_DESCRIPTION,
+  LANDING_TITLE,
   docsCard,
   eyebrow,
   shareImageAlt,
   shareImageUrl,
   shareImageVersion,
 } from '../../src/lib/seo.mjs';
+
+describe('landing text', () => {
+  it('keeps the title and says what artic is in the description', () => {
+    expect(LANDING_TITLE).toBe('artic: a cross-platform UI framework for Rust');
+    expect(LANDING_DESCRIPTION).toBe(
+      'artic is a cross-platform UI framework for Rust: views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.',
+    );
+    expect(LANDING_CARD.description).toBe(LANDING_DESCRIPTION);
+  });
+});
 
 describe('shareImageVersion', () => {
   it('is the first 10 hex characters of the SHA-256 of the input', () => {

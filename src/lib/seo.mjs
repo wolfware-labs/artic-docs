@@ -12,7 +12,7 @@ export const REPOSITORY = 'https://github.com/wolfware-labs/artic';
 export const LANDING_TITLE = 'artic: a cross-platform UI framework for Rust';
 export const HERO_HEADING = ['Write the app.', 'Run it everywhere.'];
 export const LANDING_DESCRIPTION =
-  'Views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.';
+  'artic is a cross-platform UI framework for Rust: views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.';
 
 /**
  * Every page gets its own share card, rendered at build time by src/pages/og/[...slug].png.ts.
