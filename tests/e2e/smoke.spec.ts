@@ -17,6 +17,9 @@ test('reserved namespace paths are not pages', async ({ request }) => {
   expect((await request.get('/markup')).status()).toBe(404);
 });
 
+// The square sizes public/favicon.ico holds, in its directory order.
+const ICO_SIZES = [16, 32, 48];
+
 for (const path of ['/', '/docs/start-here/install/']) {
   test(`${path} links the favicon set`, async ({ page, request }) => {
     await page.goto(path);
@@ -35,11 +38,7 @@ for (const path of ['/', '/docs/start-here/install/']) {
       body[6 + 16 * i],
       body[7 + 16 * i],
     ]);
-    expect(sizes).toEqual([
-      [16, 16],
-      [32, 32],
-      [48, 48],
-    ]);
+    expect(sizes).toEqual(ICO_SIZES.map((s) => [s, s]));
     const png = page.locator('link[rel~="icon"][type="image/png"][sizes="32x32"]');
     expect(await png.getAttribute('href')).toBe('/brand/favicon-32.png');
     const res = await request.get('/brand/favicon-32.png');
@@ -50,12 +49,12 @@ for (const path of ['/', '/docs/start-here/install/']) {
     const png32 = await res.body();
     expect([png32.readUInt32BE(16), png32.readUInt32BE(20)]).toEqual([32, 32]);
   });
-
-  test(`${path} declares every size the favicon.ico holds`, async ({ page }) => {
-    await page.goto(path);
-    // A sizes attribute must list what the file holds, or browsers skip its
-    // other images; Starlight writes the docs link with no sizes at all.
-    const sizes = await page.locator('link[rel~="icon"][href="/favicon.ico"]').getAttribute('sizes');
-    expect([null, '16x16 32x32 48x48']).toContain(sizes);
-  });
 }
+
+test('the landing page declares every size the favicon.ico holds', async ({ page }) => {
+  await page.goto('/');
+  // Browsers choose among the icon links by their sizes, so the ICO's link
+  // names all of its images. Starlight writes the docs link without sizes.
+  const sizes = await page.locator('link[rel~="icon"][href="/favicon.ico"]').getAttribute('sizes');
+  expect(sizes).toBe(ICO_SIZES.map((s) => `${s}x${s}`).join(' '));
+});
