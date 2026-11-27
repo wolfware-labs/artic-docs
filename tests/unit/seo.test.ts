@@ -23,7 +23,8 @@ describe('landing text', () => {
     expect(LANDING_CARD.description).toBe(
       'Views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.',
     );
-    // src/lib/og.ts draws the description at 28px in three lines; a longer line is cut off.
+    // src/lib/og.ts draws the description at 28px in three lines of about 40 to 45 characters
+    // (lineClamp: 3), so a line much past 125 characters ends in an ellipsis.
     expect(LANDING_CARD.description!.length).toBeLessThanOrEqual(125);
   });
 });
