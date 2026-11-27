@@ -7,7 +7,7 @@ const root = resolve(import.meta.dirname, '../..');
 const workflowDir = join(root, '.github/workflows');
 const actionsDir = join(root, '.github/actions');
 
-type Step = { uses?: string; run?: string };
+type Step = { uses?: string; run?: string; with?: Record<string, unknown> };
 type Job = { if?: string; needs?: string | string[]; permissions?: unknown; steps?: Step[] };
 type Workflow = { permissions?: unknown; jobs: Record<string, Job> };
 
@@ -32,7 +32,9 @@ const writeAfterInstall = new Set(['deploy.yml:release']);
 const needsOf = (job: Job) => (job.needs === undefined ? [] : [job.needs].flat());
 
 describe('workflows', () => {
-  test.each(jobs.filter((j) => runsDependencyCode(j.job)).map((j) => [`${j.file}:${j.id}`, j] as const))(
+  const dependencyJobs = jobs.filter((j) => runsDependencyCode(j.job)).map((j) => [`${j.file}:${j.id}`, j] as const);
+
+  test.each(dependencyJobs)(
     '%s runs dependency code with no secrets and no write permission',
     (name, { job, workflow }) => {
       expect(JSON.stringify(job)).not.toContain('secrets.');
@@ -41,6 +43,13 @@ describe('workflows', () => {
       expect(JSON.stringify(permissions ?? {})).not.toContain('write');
     },
   );
+
+  // Otherwise the token checkout stores in .git/config is readable by every
+  // install script and build step that runs after it.
+  test.each(dependencyJobs)('%s checks out without storing credentials', (_name, { job }) => {
+    const checkouts = (job.steps ?? []).filter((s) => s.uses?.startsWith('actions/checkout@'));
+    for (const step of checkouts) expect(step.with?.['persist-credentials']).toBe(false);
+  });
 
   test.each(jobs.map((j) => [`${j.file}:${j.id}`, j] as const))(
     '%s declares permissions, on the job or the workflow',
