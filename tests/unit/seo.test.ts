@@ -1,8 +1,12 @@
+import { readFileSync } from 'node:fs';
+import satori from 'satori';
 import { describe, expect, it } from 'vitest';
+import { DESCRIPTION_STYLE, TEXT_COLUMN_WIDTH } from '../../src/lib/og';
 import {
   LANDING_CARD,
   LANDING_DESCRIPTION,
   LANDING_TITLE,
+  OG_FONTS,
   docsCard,
   eyebrow,
   shareImageAlt,
@@ -18,14 +22,33 @@ describe('landing text', () => {
     );
   });
 
-  it('gives the share card its own line, short enough for the card', () => {
+  it('gives the share card its own line', () => {
     // The card's eyebrow already says what artic is, so its line starts from what artic does.
     expect(LANDING_CARD.description).toBe(
       'Views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.',
     );
-    // src/lib/og.ts draws the description at 28px in three lines of about 40 to 45 characters
-    // (lineClamp: 3), so a line much past 125 characters ends in an ellipsis.
-    expect(LANDING_CARD.description!.length).toBeLessThanOrEqual(125);
+  });
+});
+
+// Draws a card's description box as the card does, with text left as text so a cut shows up
+// as the ellipsis that lineClamp adds.
+const fonts = OG_FONTS.map(({ name, weight, file }) => ({ name, weight, data: readFileSync(file) }));
+async function drawnDescription(text: string): Promise<string> {
+  const box = { type: 'div', props: { style: DESCRIPTION_STYLE, children: text } };
+  const column = { type: 'div', props: { style: { display: 'flex', width: TEXT_COLUMN_WIDTH }, children: box } };
+  return satori(column as never, { width: TEXT_COLUMN_WIDTH, fonts: fonts as never, embedFont: false });
+}
+
+describe('share card description', () => {
+  // How many characters fit depends on the letters: 125 characters of prose fit, 125 of
+  // capitals do not. So the card text is drawn rather than counted.
+  it('ends in an ellipsis when the text does not fit in three lines', async () => {
+    const capitals = 'XAML GPU RUST '.repeat(9).slice(0, 125);
+    expect(await drawnDescription(capitals)).toContain('\u2026');
+  });
+
+  it('fits the landing card text in three lines', async () => {
+    expect(await drawnDescription(LANDING_CARD.description!)).not.toContain('\u2026');
   });
 });
 

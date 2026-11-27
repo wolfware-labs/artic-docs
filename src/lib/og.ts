@@ -51,6 +51,11 @@ const h = (type: string, style: Record<string, unknown>, children?: unknown, ext
   props: { style, children, ...extra },
 });
 
+// The width of the text column, and the description's style inside it: three lines at most,
+// cut with an ellipsis. tests/unit/seo.test.ts draws card text with the same two.
+export const TEXT_COLUMN_WIDTH = 600;
+export const DESCRIPTION_STYLE = { display: 'block', fontFamily: 'Barlow', fontSize: 28, lineHeight: 1.4, color: c.mute, lineClamp: 3 };
+
 export const titleSize = (title: string) => (title.length > 40 ? 58 : title.length > 26 ? 68 : 80);
 
 export async function renderCard({ eyebrow, title, description }: Card): Promise<Buffer> {
@@ -73,7 +78,7 @@ export async function renderCard({ eyebrow, title, description }: Card): Promise
       h(
         'div',
         // satori adds padding outside width and height, so these are the inner sizes.
-        { display: 'flex', flexDirection: 'column', width: 600, height: OG_HEIGHT - 114, padding: '60px 0 54px 72px' },
+        { display: 'flex', flexDirection: 'column', width: TEXT_COLUMN_WIDTH, height: OG_HEIGHT - 114, padding: '60px 0 54px 72px' },
         [
           h('div', { display: 'flex', alignItems: 'center', gap: 14 }, [
             h('img', small, undefined, { src: logo, ...small }),
@@ -86,7 +91,7 @@ export async function renderCard({ eyebrow, title, description }: Card): Promise
               h('div', { display: 'flex', fontFamily: 'JetBrains Mono', fontWeight: 500, fontSize: 20, letterSpacing: 3, color: c.teal, textTransform: 'uppercase' }, eyebrow),
               h('div', { display: 'block', fontFamily: 'Barlow Condensed', fontWeight: 700, fontSize: titleSize(title), lineHeight: 1.04, letterSpacing: -0.5, lineClamp: 3 }, title),
               description
-                ? h('div', { display: 'block', fontSize: 28, lineHeight: 1.4, color: c.mute, lineClamp: 3 }, description)
+                ? h('div', DESCRIPTION_STYLE, description)
                 : null,
             ].filter(Boolean),
           ),
