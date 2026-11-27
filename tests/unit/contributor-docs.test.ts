@@ -1,4 +1,4 @@
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -125,6 +125,32 @@ test('sync copies only the published set', async () => {
     'design/text.md',
     'spec/technical-spec.md',
   ]);
+});
+
+test.skipIf(process.platform === 'win32')('sync skips symlinked files and folders', async () => {
+  const source = await mkdtemp(join(tmpdir(), 'artic-sync-src-'));
+  await cp(FIXTURE, source, { recursive: true });
+  const outside = await mkdtemp(join(tmpdir(), 'artic-sync-outside-'));
+  const marker = 'text from outside the docs folder';
+  await writeFile(join(outside, 'outside.md'), `# Outside\n\n${marker}\n`);
+  await mkdir(join(outside, 'outside-dir'));
+  await writeFile(join(outside, 'outside-dir/x.md'), `# X\n\n${marker}\n`);
+  await symlink(join(outside, 'outside.md'), join(source, 'design/linked.md'));
+  await symlink(join(outside, 'outside-dir'), join(source, 'design/linked-dir'));
+
+  const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
+  try {
+    const written: string[] = await syncContributorDocs({ sourceDir: source, outDir: tmp });
+    expect(written.map((p) => p.slice(tmp.length + 1)).sort()).toEqual([
+      'architecture.md',
+      'design/loader-values.md',
+      'design/text.md',
+      'spec/technical-spec.md',
+    ]);
+    for (const file of written) expect(await readFile(file, 'utf8')).not.toContain(marker);
+  } finally {
+    await Promise.all([source, outside, tmp].map((d) => rm(d, { recursive: true, force: true })));
+  }
 });
 
 test('written files carry quoted frontmatter titles', async () => {

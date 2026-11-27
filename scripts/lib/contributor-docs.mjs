@@ -106,12 +106,14 @@ export function transformDoc(source, relPath) {
   };
 }
 
+// Only regular files and folders: a symlink, or any other special entry, in the
+// cloned docs is skipped, so the sync never reads outside the docs folder.
 async function walk(dir, base = '') {
   const found = [];
   for (const entry of await readdir(join(dir, base), { withFileTypes: true })) {
     const rel = base ? `${base}/${entry.name}` : entry.name;
     if (entry.isDirectory()) found.push(...(await walk(dir, rel)));
-    else found.push(rel);
+    else if (entry.isFile()) found.push(rel);
   }
   return found;
 }
