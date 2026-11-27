@@ -73,6 +73,21 @@ for card in /og/index.png /og/docs/concepts/signals.png; do
   ok "$card is a PNG"
 done
 
+# Search engines and browsers fetch /favicon.ico directly, often without reading a page.
+get /favicon.ico
+[ "$status" = 200 ] || fail "/favicon.ico returns 200 (got $status)"
+[ "$(header Content-Type)" = "image/x-icon" ] || fail "/favicon.ico is an icon (got $(header Content-Type))"
+ok "/favicon.ico is an icon"
+curl -sS -H 'Accept-Encoding: gzip' -D "$tmp/h" -o /dev/null "$base/favicon.ico"
+# No Content-Encoding header makes header's grep fail; that is the case to report, not to exit on.
+gz="$(header Content-Encoding || true)"
+[ "$gz" = "gzip" ] || fail "/favicon.ico is sent gzipped (got '${gz:-none}')"
+ok "/favicon.ico is sent gzipped"
+get /brand/favicon-32.png
+[ "$status" = 200 ] || fail "/brand/favicon-32.png returns 200 (got $status)"
+[ "$(header Content-Type)" = "image/png" ] || fail "/brand/favicon-32.png is a PNG (got $(header Content-Type))"
+ok "/brand/favicon-32.png is a PNG"
+
 get /no-such-page/
 [ "$status" = 404 ] || fail "/no-such-page/ returns 404 (got $status)"
 grep -qF "$marker" "$tmp/b" || fail "404 body contains '$marker'"

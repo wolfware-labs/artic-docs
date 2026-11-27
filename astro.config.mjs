@@ -65,11 +65,15 @@ export default defineConfig({
     react(),
     starlight({
       title: SITE_NAME,
-      // Starlight asks for /favicon.svg by default; point it at the icon the landing page uses.
-      favicon: '/brand/artic-logo.png',
+      // Starlight asks for /favicon.svg by default; use the same icon set as the landing page.
+      favicon: '/favicon.ico',
       // Site-wide tags only: Starlight sets each page's own title, description and URL, and
       // src/route-middleware.ts adds the page's share card. A title here would apply to every page.
       head: [
+        {
+          tag: 'link',
+          attrs: { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/brand/favicon-32.png' },
+        },
         { tag: 'link', attrs: { rel: 'apple-touch-icon', href: '/brand/apple-touch-icon.png' } },
         { tag: 'meta', attrs: { property: 'og:site_name', content: SITE_NAME } },
       ],
