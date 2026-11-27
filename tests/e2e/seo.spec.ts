@@ -43,7 +43,10 @@ test('the landing page carries canonical, social and structured data', async ({ 
   expect(await meta(page, 'property', 'og:url')).toBe('https://artic.rs/');
   expect(await meta(page, 'property', 'og:site_name')).toBe('artic');
   expect(await meta(page, 'property', 'og:title')).toBeTruthy();
-  expect(await meta(page, 'property', 'og:description')).toBeTruthy();
+  // Search results, link previews and structured data all show the same description.
+  const description = await meta(page, 'name', 'description');
+  expect(description).toBeTruthy();
+  expect(await meta(page, 'property', 'og:description')).toBe(description);
   expect(await meta(page, 'name', 'twitter:card')).toBe('summary_large_image');
 
   expect(await meta(page, 'name', 'twitter:title')).toBe(await meta(page, 'property', 'og:title'));
@@ -66,6 +69,7 @@ test('the landing page carries canonical, social and structured data', async ({ 
   expect(ld['@type']).toBe('SoftwareSourceCode');
   expect(ld.codeRepository).toBe('https://github.com/wolfware-labs/artic');
   expect(ld.url).toBe('https://artic.rs/');
+  expect(ld.description).toBe(description);
 });
 
 test('docs pages carry their own share card and the site name', async ({ page, request }) => {

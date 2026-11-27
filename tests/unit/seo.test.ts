@@ -16,7 +16,15 @@ describe('landing text', () => {
     expect(LANDING_DESCRIPTION).toBe(
       'artic is a cross-platform UI framework for Rust: views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.',
     );
-    expect(LANDING_CARD.description).toBe(LANDING_DESCRIPTION);
+  });
+
+  it('gives the share card its own line, short enough for the card', () => {
+    // The card's eyebrow already says what artic is, so its line starts from what artic does.
+    expect(LANDING_CARD.description).toBe(
+      'Views in XAML, logic in Rust, and one GPU renderer that draws the same pixels on every platform.',
+    );
+    // src/lib/og.ts draws the description at 28px in three lines; a longer line is cut off.
+    expect(LANDING_CARD.description!.length).toBeLessThanOrEqual(125);
   });
 });
 
