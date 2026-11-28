@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, posix } from 'node:path';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmFromMarkdown } from 'mdast-util-gfm';
@@ -106,17 +106,22 @@ export function transformDoc(source, relPath) {
   };
 }
 
+// Only regular files and folders: a symlink, or any other special entry, in the
+// cloned docs is skipped, so the sync never reads outside the docs folder.
 async function walk(dir, base = '') {
   const found = [];
   for (const entry of await readdir(join(dir, base), { withFileTypes: true })) {
     const rel = base ? `${base}/${entry.name}` : entry.name;
     if (entry.isDirectory()) found.push(...(await walk(dir, rel)));
-    else found.push(rel);
+    else if (entry.isFile()) found.push(rel);
   }
   return found;
 }
 
 export async function syncContributorDocs({ sourceDir, outDir }) {
+  // lstat, so a docs folder that is itself a symlink is refused like the ones inside it.
+  const stats = await lstat(sourceDir).catch(() => null);
+  if (!stats?.isDirectory()) throw new Error(`Framework docs at ${sourceDir} are missing or not a folder`);
   const written = [];
   for (const relPath of (await walk(sourceDir)).filter(isPublished).sort()) {
     const { title, body } = transformDoc(await readFile(join(sourceDir, relPath), 'utf8'), relPath);

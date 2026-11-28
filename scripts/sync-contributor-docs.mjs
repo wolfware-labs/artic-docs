@@ -1,5 +1,4 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import { mkdir, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +20,6 @@ async function resolveSourceDir() {
 }
 
 const sourceDir = await resolveSourceDir();
-if (!existsSync(sourceDir)) throw new Error(`Framework docs not found at ${sourceDir}`);
 await rm(outDir, { recursive: true, force: true });
 const written = await syncContributorDocs({ sourceDir, outDir });
 console.log(`contributor docs: wrote ${written.length} pages from ${sourceDir}`);

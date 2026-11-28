@@ -82,8 +82,10 @@ Three workflows under `.github/workflows/` build and ship the site.
 | `archive-docs.yml` | A `framework-release` dispatch, or a manual run | Archives the docs for a framework release and opens a pull request. |
 
 On a push, the `release` job in `deploy.yml` runs semantic-release first. It tags
-`vX.Y.Z` and creates the GitHub release; it doesn't commit anything. The `deploy` job
-then pushes `docker.io/wolfware/artic-site` with these tags:
+`vX.Y.Z` and creates the GitHub release; it doesn't commit anything. The `build` job
+then installs and builds the site and uploads `dist/` as an artifact. The `publish` job
+installs nothing: it downloads `dist/`, builds the image, smoke-tests it, logs in to
+Docker Hub and pushes `docker.io/wolfware/artic-site` with these tags:
 
 | Tag | When | Who uses it |
 | --- | --- | --- |
@@ -115,7 +117,12 @@ gh api repos/wolfware-labs/artic-docs/dispatches \
 
 The workflow archives the docs and opens a pull request titled
 `docs: archive the 0.2 docs`. Pull requests opened with the workflow token don't trigger
-`ci.yml`, so the workflow builds and tests the archive itself. A patch release of a line
+`ci.yml`, so the workflow builds and tests the archive itself. It does that in a
+`snapshot` job, which hands the new files under `src/content/` to a `pull-request` job
+as a patch. That job installs nothing; `scripts/apply-archive.mjs` applies the patch
+only if it adds new regular files under `src/content/docs/<slug>/` and
+`src/content/versions/<slug>.json`, then adds the slug to `versions.json`, and the job
+opens the pull request with the bot app's token. A patch release of a line
 that is already archived, like 0.1.1 after 0.1.0, does nothing. To run it by hand, start
 "Archive docs" from the Actions tab and enter the version.
 
