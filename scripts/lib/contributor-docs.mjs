@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, posix } from 'node:path';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmFromMarkdown } from 'mdast-util-gfm';
@@ -119,6 +119,9 @@ async function walk(dir, base = '') {
 }
 
 export async function syncContributorDocs({ sourceDir, outDir }) {
+  // lstat, so a docs folder that is itself a symlink is refused like the ones inside it.
+  const stats = await lstat(sourceDir).catch(() => null);
+  if (!stats?.isDirectory()) throw new Error(`Framework docs at ${sourceDir} are missing or not a folder`);
   const written = [];
   for (const relPath of (await walk(sourceDir)).filter(isPublished).sort()) {
     const { title, body } = transformDoc(await readFile(join(sourceDir, relPath), 'utf8'), relPath);

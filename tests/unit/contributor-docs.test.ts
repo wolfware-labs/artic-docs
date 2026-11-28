@@ -1,4 +1,4 @@
-import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -150,6 +150,34 @@ test.skipIf(process.platform === 'win32')('sync skips symlinked files and folder
     for (const file of written) expect(await readFile(file, 'utf8')).not.toContain(marker);
   } finally {
     await Promise.all([source, outside, tmp].map((d) => rm(d, { recursive: true, force: true })));
+  }
+});
+
+test.skipIf(process.platform === 'win32')('sync refuses a docs folder that is a symlink', async () => {
+  const outside = await mkdtemp(join(tmpdir(), 'artic-sync-outside-'));
+  await cp(FIXTURE, outside, { recursive: true });
+  const clone = await mkdtemp(join(tmpdir(), 'artic-sync-clone-'));
+  await symlink(outside, join(clone, 'docs'));
+
+  const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
+  try {
+    await expect(syncContributorDocs({ sourceDir: join(clone, 'docs'), outDir: tmp })).rejects.toThrow(
+      /not a folder/,
+    );
+    expect(await readdir(tmp)).toEqual([]);
+  } finally {
+    await Promise.all([outside, clone, tmp].map((d) => rm(d, { recursive: true, force: true })));
+  }
+});
+
+test('sync refuses a docs folder that does not exist', async () => {
+  const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
+  try {
+    await expect(syncContributorDocs({ sourceDir: join(tmp, 'missing'), outDir: tmp })).rejects.toThrow(
+      /not a folder/,
+    );
+  } finally {
+    await rm(tmp, { recursive: true, force: true });
   }
 });
 
