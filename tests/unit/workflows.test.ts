@@ -1,3 +1,19 @@
+// These checks keep the CI workflows from putting secrets, write tokens or a
+// stored checkout token in a job that installs or runs the project's npm
+// dependencies. They catch that mix made by accident; they do not prove that no
+// job can reach a secret through dependency code. Known limits:
+// - Matching is by text. A run step counts only through the commands named in
+//   runsDependencyCode, so a shell or node script that installs or imports
+//   packages itself is not seen, nor is an install inside a Docker build.
+// - Remote actions (owner/repo@sha) count as not running the project's
+//   dependencies. Local actions are read from .github/actions; any other local
+//   action counts as running them.
+// - A reusable workflow a job calls with `uses:` is not read; only its own
+//   file, when it sits in .github/workflows, is checked.
+// - What a dependency job hands to another job (an artifact, a cache, an
+//   output) is not followed.
+// - The permission check looks for the word "write" in the job's or the
+//   workflow's permissions.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, test } from 'vitest';
@@ -23,18 +39,39 @@ const jobs = workflows.flatMap(({ file, doc }) =>
 const installsOnSetup = (s: Step) =>
   !!s.uses?.startsWith('pnpm/action-setup@') && ![undefined, false, 'false'].includes(s.with?.run_install as never);
 
-// Jobs that install or run the project's npm dependencies.
-const runsDependencyCode = (job: Job) =>
-  (job.steps ?? []).some(
-    (s) =>
-      /\b(pnpm|npm|npx|yarn|corepack|bun)\b|scripts\/archive-version\.mjs/.test(s.run ?? '') ||
-      s.uses === './.github/actions/build-site' ||
-      installsOnSetup(s),
-  );
+// The steps of each local composite action, by the path a step's `uses` names.
+const localActions: Record<string, Step[]> = Object.fromEntries(
+  readdirSync(actionsDir).map((d) => [
+    `./.github/actions/${d}`,
+    (parse(readFileSync(join(actionsDir, d, 'action.yml'), 'utf8')) as { runs: { steps?: Step[] } }).runs.steps ?? [],
+  ]),
+);
+
+// Jobs that install or run the project's npm dependencies. A local action counts
+// by its own steps; one that is not in `actions` counts as running them.
+const runsDependencyCode = (job: Job, actions = localActions) => {
+  const seen = new Set<string>();
+  const runs = (steps: Step[]): boolean =>
+    steps.some((s) => {
+      if (s.uses?.startsWith('./')) {
+        const path = s.uses.replace(/\/+$/, '');
+        if (seen.has(path)) return false;
+        seen.add(path);
+        return !Object.hasOwn(actions, path) || runs(actions[path]);
+      }
+      return (
+        /\b(pnpm|npm|npx|yarn|corepack|bun)\b|\bnode\s+--run\b|node_modules\/\.bin\/|scripts\/archive-version\.mjs/.test(
+          s.run ?? '',
+        ) || installsOnSetup(s)
+      );
+    });
+  return runs(job.steps ?? []);
+};
 
 // A job sees its own secrets and those in the workflow-level env, in any form:
-// secrets.X, secrets['X'], toJSON(secrets) or secrets: inherit.
-const holdsSecret = (job: Job, workflow: Workflow) => /\bsecrets\b/.test(JSON.stringify([workflow.env ?? {}, job]));
+// secrets.X, secrets['X'], toJSON(secrets) or secrets: inherit. Context names
+// are case-insensitive, so SECRETS.X works too.
+const holdsSecret = (job: Job, workflow: Workflow) => /\bsecrets\b/i.test(JSON.stringify([workflow.env ?? {}, job]));
 
 // actions/checkout stores the token in .git/config unless told not to.
 const storesCredentials = (job: Job) =>
@@ -90,13 +127,10 @@ describe('workflows', () => {
     },
   );
 
-  const actionFiles = readdirSync(actionsDir).map((d) => join(actionsDir, d, 'action.yml'));
   const uses = [
     ...jobs.flatMap(({ file, job }) => (job.steps ?? []).map((s) => [file, s.uses] as const)),
-    ...actionFiles.flatMap((f) =>
-      ((parse(readFileSync(f, 'utf8')) as { runs: { steps?: Step[] } }).runs.steps ?? []).map(
-        (s) => [f.slice(root.length + 1), s.uses] as const,
-      ),
+    ...Object.entries(localActions).flatMap(([path, steps]) =>
+      steps.map((s) => [`${path.slice(2)}/action.yml`, s.uses] as const),
     ),
   ].filter((u): u is readonly [string, string] => typeof u[1] === 'string' && !u[1].startsWith('./'));
 
@@ -119,6 +153,8 @@ describe('workflow policy predicates', () => {
     ['bun', 'run: bun install'],
     ['pnpm', 'run: pnpm build'],
     ['the archive script', 'run: node scripts/archive-version.mjs 1.0.0'],
+    ['node --run', 'run: node --run build'],
+    ['a node_modules/.bin tool', 'run: node_modules/.bin/astro build'],
     ['the build-site action', 'uses: ./.github/actions/build-site'],
     ['pnpm/action-setup with run_install: true', 'uses: pnpm/action-setup@abc\n        with:\n          run_install: true'],
     [
@@ -146,6 +182,21 @@ describe('workflow policy predicates', () => {
   });
 
   test.each([
+    ['a local action that installs', true, { './.github/actions/deps': [{ run: 'pnpm install' }] }],
+    [
+      'a local action inside a local action',
+      true,
+      { './.github/actions/deps': [{ uses: './.github/actions/inner' }], './.github/actions/inner': [{ run: 'npm ci' }] },
+    ],
+    ['a local action that only echoes', false, { './.github/actions/deps': [{ run: 'echo hi' }] }],
+    ['a local action that calls itself', false, { './.github/actions/deps': [{ uses: './.github/actions/deps/' }] }],
+    ['a local action the test cannot read', true, {}],
+  ])('%s runs dependency code: %s', (_name, runs, actions) => {
+    const job = jobOf('jobs:\n  job:\n    steps:\n      - uses: ./.github/actions/deps\n');
+    expect(runsDependencyCode(job, actions as Record<string, Step[]>)).toBe(runs);
+  });
+
+  test.each([
     ['workflow-level env', 'env:\n  TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}\njobs:\n  job:\n    steps:\n      - run: pnpm build\n'],
     ['job env', 'jobs:\n  job:\n    env:\n      TOKEN: ${{ secrets.X }}\n    steps:\n      - run: pnpm build\n'],
     [
@@ -155,6 +206,8 @@ describe('workflow policy predicates', () => {
     ['an action input', 'jobs:\n  job:\n    steps:\n      - uses: x/y@abc\n        with:\n          token: ${{ secrets.X }}\n'],
     ['the whole secrets context', 'jobs:\n  job:\n    steps:\n      - run: echo "$S"\n        env:\n          S: ${{ toJSON(secrets) }}\n'],
     ['secrets: inherit', 'jobs:\n  job:\n    uses: ./.github/workflows/other.yml\n    secrets: inherit\n'],
+    ['upper case', 'jobs:\n  job:\n    env:\n      TOKEN: ${{ SECRETS.X }}\n    steps:\n      - run: pnpm build\n'],
+    ['mixed case in index form', "jobs:\n  job:\n    env:\n      TOKEN: ${{ Secrets['X'] }}\n    steps:\n      - run: pnpm build\n"],
   ])('%s reaches a secret', (_name, yaml) => {
     const workflow = parse(yaml) as Workflow;
     expect(holdsSecret(workflow.jobs.job, workflow)).toBe(true);
