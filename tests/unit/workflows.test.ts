@@ -16,9 +16,10 @@
 //   output) is not followed.
 // - The permission check looks for the word "write" in the job's or the
 //   workflow's permissions.
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { describe, expect, test } from 'vitest';
+import { afterAll, describe, expect, test } from 'vitest';
 import { parse } from 'yaml';
 
 const root = resolve(import.meta.dirname, '../..');
@@ -44,14 +45,18 @@ const installsOnSetup = (s: Step) =>
 // The steps of each local composite action, by the path a step's `uses` names.
 // An action with no action.yml or action.yaml, or one that is not composite,
 // is left out, so the predicates take it as the worst case.
-const localActions: Record<string, Step[]> = Object.fromEntries(
-  readdirSync(actionsDir).flatMap((d) => {
-    const file = ['action.yml', 'action.yaml'].map((f) => join(actionsDir, d, f)).find((f) => existsSync(f));
-    if (!file) return [];
-    const { runs } = parse(readFileSync(file, 'utf8')) as { runs?: { using?: string; steps?: Step[] } };
-    return runs?.using === 'composite' ? [[`./.github/actions/${d}`, runs.steps ?? []]] : [];
-  }),
-);
+// `dir` stands in for .github/actions; the keys are always ./.github/actions/<name>.
+const loadLocalActions = (dir: string): Record<string, Step[]> =>
+  Object.fromEntries(
+    readdirSync(dir).flatMap((d) => {
+      const file = ['action.yml', 'action.yaml'].map((f) => join(dir, d, f)).find((f) => existsSync(f));
+      if (!file) return [];
+      const { runs } = parse(readFileSync(file, 'utf8')) as { runs?: { using?: string; steps?: Step[] } };
+      return runs?.using === 'composite' ? [[`./.github/actions/${d}`, runs.steps ?? []]] : [];
+    }),
+  );
+
+const localActions = loadLocalActions(actionsDir);
 
 // A job's steps with each local action replaced by its own steps, nested ones
 // included; an action already expanded adds nothing, so a loop ends. `unknown`
@@ -91,7 +96,9 @@ const runsDependencyCode = (job: Job, actions = localActions) => {
 
 // A job sees its own secrets and those in the workflow-level env, in any form:
 // secrets.X, secrets['X'], toJSON(secrets) or secrets: inherit. Context names
-// are case-insensitive, so SECRETS.X works too.
+// are case-insensitive, so SECRETS.X works too. GitHub does not give composite
+// actions the secrets context, so a local action's own steps should never match;
+// they are searched anyway, in case that changes or the action is miswritten.
 const holdsSecret = (job: Job, workflow: Workflow, actions = localActions) => {
   const { steps, unknown } = expandSteps(job, actions);
   return unknown || /\bsecrets\b/i.test(JSON.stringify([workflow.env ?? {}, job, steps]));
@@ -279,9 +286,38 @@ describe('workflow policy predicates', () => {
 
   test.each([
     ['only echoes', false, { './.github/actions/deps': [{ run: 'echo hi' }] }],
+    ['puts a secret in a step env', true, { './.github/actions/deps': [{ run: 'echo', env: { T: '${{ secrets.X }}' } }] }],
     ['the test cannot read', true, {}],
   ])('a local action that %s reaches a secret: %s', (_name, holds, actions) => {
     const workflow = { jobs: { job: localJob } } as Workflow;
     expect(holdsSecret(localJob, workflow, actions as Record<string, Step[]>)).toBe(holds);
+  });
+
+  // The loader reads composite actions from action.yml or action.yaml and
+  // leaves every other kind out, so the predicates take it as the worst case.
+  describe('loading local actions', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'artic-actions-'));
+    afterAll(() => rmSync(dir, { recursive: true, force: true }));
+    const write = (name: string, file: string, yaml: string) => {
+      mkdirSync(join(dir, name));
+      writeFileSync(join(dir, name, file), yaml);
+    };
+    write('docker', 'action.yml', "runs:\n  using: docker\n  image: Dockerfile\n");
+    write('comp', 'action.yaml', 'runs:\n  using: composite\n  steps:\n    - run: echo hi\n      shell: bash\n');
+    const actions = loadLocalActions(dir);
+    const jobUsing = (name: string) => jobOf(`jobs:\n  job:\n    steps:\n      - uses: ./.github/actions/${name}\n`);
+
+    test('reads a composite action from action.yaml', () => {
+      expect(actions['./.github/actions/comp']).toEqual([{ run: 'echo hi', shell: 'bash' }]);
+      expect(runsDependencyCode(jobUsing('comp'), actions)).toBe(false);
+    });
+
+    test('leaves out an action that is not composite, so it counts as the worst case', () => {
+      expect(Object.hasOwn(actions, './.github/actions/docker')).toBe(false);
+      const job = jobUsing('docker');
+      expect(runsDependencyCode(job, actions)).toBe(true);
+      expect(holdsSecret(job, { jobs: { job } }, actions)).toBe(true);
+      expect(storesCredentials(job, actions)).toBe(true);
+    });
   });
 });
