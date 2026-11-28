@@ -158,9 +158,7 @@ describe('workflows', () => {
 
   const uses = [
     ...jobs.flatMap(({ file, job }) => (job.steps ?? []).map((s) => [file, s.uses] as const)),
-    ...Object.entries(localActions).flatMap(([path, steps]) =>
-      steps.map((s) => [`${path.slice(2)}/action.yml`, s.uses] as const),
-    ),
+    ...Object.entries(localActions).flatMap(([path, steps]) => steps.map((s) => [path.slice(2), s.uses] as const)),
   ].filter((u): u is readonly [string, string] => typeof u[1] === 'string' && !u[1].startsWith('./'));
 
   test.each(uses)('%s pins %s to a commit', (_file, ref) => {
