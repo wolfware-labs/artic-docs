@@ -1,7 +1,7 @@
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { addVersion, versionSlug, versionsPluginConfig } from '../../src/lib/versions.mjs';
 
 describe('versionSlug', () => {
@@ -37,8 +37,12 @@ describe('versionsPluginConfig', () => {
 });
 
 describe('addVersion', () => {
+  const dirs: string[] = [];
+  afterAll(() => Promise.all(dirs.map((d) => rm(d, { recursive: true, force: true }))));
+
   it('archiving the same version twice leaves one entry', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'artic-versions-'));
+    dirs.push(dir);
     const file = join(dir, 'versions.json');
     await writeFile(file, '[]\n');
     expect(await addVersion(file, '0.1.0')).toEqual({ slug: '0.1', added: true });

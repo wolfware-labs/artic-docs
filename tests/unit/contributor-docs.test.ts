@@ -1,10 +1,13 @@
 import { cp, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { expect, test } from 'vitest';
+import { afterAll, expect, test } from 'vitest';
 import { syncContributorDocs, transformDoc } from '../../scripts/lib/contributor-docs.mjs';
 
 const FIXTURE = resolve(import.meta.dirname, '../fixtures/artic-docs');
+
+const dirs: string[] = [];
+afterAll(() => Promise.all(dirs.map((d) => rm(d, { recursive: true, force: true }))));
 
 test('takes the title from the first H1 and drops it', () => {
   const r = transformDoc('# Backend seams\n\nBody', 'design/backends.md');
@@ -115,6 +118,7 @@ test('code spans with longer delimiters or over two lines keep their text', () =
 
 test('sync copies only the published set', async () => {
   const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
+  dirs.push(tmp);
   const written: string[] = await syncContributorDocs({ sourceDir: FIXTURE, outDir: tmp });
   expect(written.some((p) => p.includes('internal'))).toBe(false);
   expect(written.some((p) => p.includes('spikes'))).toBe(false);
@@ -183,6 +187,7 @@ test('sync refuses a docs folder that does not exist', async () => {
 
 test('written files carry quoted frontmatter titles', async () => {
   const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
+  dirs.push(tmp);
   await syncContributorDocs({ sourceDir: FIXTURE, outDir: tmp });
   const out = await readFile(join(tmp, 'design/text.md'), 'utf8');
   expect(out.startsWith('---\ntitle: "Text \\"shaping\\""\n---\n')).toBe(true);
