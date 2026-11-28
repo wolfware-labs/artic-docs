@@ -304,6 +304,7 @@ describe('workflow policy predicates', () => {
     };
     write('docker', 'action.yml', "runs:\n  using: docker\n  image: Dockerfile\n");
     write('comp', 'action.yaml', 'runs:\n  using: composite\n  steps:\n    - run: echo hi\n      shell: bash\n');
+    write('bare', 'README.md', 'No action file here.\n');
     const actions = loadLocalActions(dir);
     const jobUsing = (name: string) => jobOf(`jobs:\n  job:\n    steps:\n      - uses: ./.github/actions/${name}\n`);
 
@@ -318,6 +319,11 @@ describe('workflow policy predicates', () => {
       expect(runsDependencyCode(job, actions)).toBe(true);
       expect(holdsSecret(job, { jobs: { job } }, actions)).toBe(true);
       expect(storesCredentials(job, actions)).toBe(true);
+    });
+
+    test('leaves out a folder with no action.yml or action.yaml, so it counts as the worst case', () => {
+      expect(Object.hasOwn(actions, './.github/actions/bare')).toBe(false);
+      expect(runsDependencyCode(jobUsing('bare'), actions)).toBe(true);
     });
   });
 });
