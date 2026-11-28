@@ -5,16 +5,18 @@
 // - Matching is by text. A run step counts only through the commands named in
 //   runsDependencyCode, so a shell or node script that installs or imports
 //   packages itself is not seen, nor is an install inside a Docker build.
+//   The `shell:` of a step and `defaults.run.shell` are not matched either.
 // - Remote actions (owner/repo@sha) count as not running the project's
-//   dependencies. Local actions are read from .github/actions; any other local
-//   action counts as running them.
+//   dependencies. A local composite action in .github/actions counts by its
+//   own steps; any other local action counts as running dependency code,
+//   holding a secret and storing credentials.
 // - A reusable workflow a job calls with `uses:` is not read; only its own
 //   file, when it sits in .github/workflows, is checked.
 // - What a dependency job hands to another job (an artifact, a cache, an
 //   output) is not followed.
 // - The permission check looks for the word "write" in the job's or the
 //   workflow's permissions.
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { parse } from 'yaml';
@@ -40,42 +42,69 @@ const installsOnSetup = (s: Step) =>
   !!s.uses?.startsWith('pnpm/action-setup@') && ![undefined, false, 'false'].includes(s.with?.run_install as never);
 
 // The steps of each local composite action, by the path a step's `uses` names.
+// An action with no action.yml or action.yaml, or one that is not composite,
+// is left out, so the predicates take it as the worst case.
 const localActions: Record<string, Step[]> = Object.fromEntries(
-  readdirSync(actionsDir).map((d) => [
-    `./.github/actions/${d}`,
-    (parse(readFileSync(join(actionsDir, d, 'action.yml'), 'utf8')) as { runs: { steps?: Step[] } }).runs.steps ?? [],
-  ]),
+  readdirSync(actionsDir).flatMap((d) => {
+    const file = ['action.yml', 'action.yaml'].map((f) => join(actionsDir, d, f)).find((f) => existsSync(f));
+    if (!file) return [];
+    const { runs } = parse(readFileSync(file, 'utf8')) as { runs?: { using?: string; steps?: Step[] } };
+    return runs?.using === 'composite' ? [[`./.github/actions/${d}`, runs.steps ?? []]] : [];
+  }),
 );
 
-// Jobs that install or run the project's npm dependencies. A local action counts
-// by its own steps; one that is not in `actions` counts as running them.
-const runsDependencyCode = (job: Job, actions = localActions) => {
+// A job's steps with each local action replaced by its own steps, nested ones
+// included; an action already expanded adds nothing, so a loop ends. `unknown`
+// is true when the job uses a local action that is not in `actions`.
+const expandSteps = (job: Job, actions: Record<string, Step[]>) => {
   const seen = new Set<string>();
-  const runs = (steps: Step[]): boolean =>
-    steps.some((s) => {
-      if (s.uses?.startsWith('./')) {
-        const path = s.uses.replace(/\/+$/, '');
-        if (seen.has(path)) return false;
-        seen.add(path);
-        return !Object.hasOwn(actions, path) || runs(actions[path]);
+  let unknown = false;
+  const expand = (steps: Step[]): Step[] =>
+    steps.flatMap((s) => {
+      if (!s.uses?.startsWith('./')) return [s];
+      const path = s.uses.replace(/\/+$/, '');
+      if (seen.has(path)) return [];
+      seen.add(path);
+      if (!Object.hasOwn(actions, path)) {
+        unknown = true;
+        return [];
       }
-      return (
+      return expand(actions[path]);
+    });
+  const steps = expand(job.steps ?? []);
+  return { steps, unknown };
+};
+
+// Jobs that install or run the project's npm dependencies.
+const runsDependencyCode = (job: Job, actions = localActions) => {
+  const { steps, unknown } = expandSteps(job, actions);
+  return (
+    unknown ||
+    steps.some(
+      (s) =>
         /\b(pnpm|npm|npx|yarn|corepack|bun)\b|\bnode\s+--run\b|node_modules\/\.bin\/|scripts\/archive-version\.mjs/.test(
           s.run ?? '',
-        ) || installsOnSetup(s)
-      );
-    });
-  return runs(job.steps ?? []);
+        ) || installsOnSetup(s),
+    )
+  );
 };
 
 // A job sees its own secrets and those in the workflow-level env, in any form:
 // secrets.X, secrets['X'], toJSON(secrets) or secrets: inherit. Context names
 // are case-insensitive, so SECRETS.X works too.
-const holdsSecret = (job: Job, workflow: Workflow) => /\bsecrets\b/i.test(JSON.stringify([workflow.env ?? {}, job]));
+const holdsSecret = (job: Job, workflow: Workflow, actions = localActions) => {
+  const { steps, unknown } = expandSteps(job, actions);
+  return unknown || /\bsecrets\b/i.test(JSON.stringify([workflow.env ?? {}, job, steps]));
+};
 
 // actions/checkout stores the token in .git/config unless told not to.
-const storesCredentials = (job: Job) =>
-  (job.steps ?? []).some((s) => s.uses?.startsWith('actions/checkout@') && s.with?.['persist-credentials'] !== false);
+const storesCredentials = (job: Job, actions = localActions) => {
+  const { steps, unknown } = expandSteps(job, actions);
+  return (
+    unknown ||
+    steps.some((s) => s.uses?.startsWith('actions/checkout@') && s.with?.['persist-credentials'] !== false)
+  );
+};
 
 // The one job allowed to hold a write token after an install: semantic-release
 // pushes the release tag and the GitHub release with github.token.
@@ -227,5 +256,34 @@ describe('workflow policy predicates', () => {
   ])('checkout with %s stores credentials: %s', (_name, step, stores) => {
     const job = jobOf(`jobs:\n  job:\n    steps:\n      - ${step}\n`);
     expect(storesCredentials(job)).toBe(stores);
+  });
+
+  // Each predicate sees a local composite action's steps as the job's own, and
+  // takes a local action it cannot read as the worst case.
+  const localJob = jobOf('jobs:\n  job:\n    steps:\n      - uses: ./.github/actions/deps\n');
+  const checkout = (persist?: boolean) => ({
+    uses: 'actions/checkout@abc',
+    ...(persist === undefined ? {} : { with: { 'persist-credentials': persist } }),
+  });
+
+  test.each([
+    ['checks out with no with', true, { './.github/actions/deps': [checkout()] }],
+    ['checks out with persist-credentials: false', false, { './.github/actions/deps': [checkout(false)] }],
+    [
+      'calls a local action that checks out',
+      true,
+      { './.github/actions/deps': [{ uses: './.github/actions/inner' }], './.github/actions/inner': [checkout(true)] },
+    ],
+    ['the test cannot read', true, {}],
+  ])('a local action that %s stores credentials: %s', (_name, stores, actions) => {
+    expect(storesCredentials(localJob, actions as Record<string, Step[]>)).toBe(stores);
+  });
+
+  test.each([
+    ['only echoes', false, { './.github/actions/deps': [{ run: 'echo hi' }] }],
+    ['the test cannot read', true, {}],
+  ])('a local action that %s reaches a secret: %s', (_name, holds, actions) => {
+    const workflow = { jobs: { job: localJob } } as Workflow;
+    expect(holdsSecret(localJob, workflow, actions as Record<string, Step[]>)).toBe(holds);
   });
 });
