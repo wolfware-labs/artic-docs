@@ -1,14 +1,13 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { afterAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { tempDirs } from '../temp-dirs';
 
 const repo = resolve(__dirname, '../..');
 
 describe('archive-version', () => {
-  const work = mkdtempSync(join(tmpdir(), 'artic-archive-'));
-  afterAll(() => rmSync(work, { recursive: true, force: true }));
+  const work = tempDirs()('artic-archive-');
 
   it(
     'snapshots the docs and builds the archived pages',
@@ -73,14 +72,12 @@ describe('archive-version', () => {
 });
 
 describe('archive-version early exits', () => {
-  const dirs: string[] = [];
-  afterAll(() => dirs.forEach((d) => rmSync(d, { recursive: true, force: true })));
+  const tempDir = tempDirs();
 
   // A small copy of the layout the script needs, with the build replaced by a
   // command that leaves a marker file so a test can tell whether it ran.
   function setup(versions: string) {
-    const dir = mkdtempSync(join(tmpdir(), 'artic-archive-fast-'));
-    dirs.push(dir);
+    const dir = tempDir('artic-archive-fast-');
     mkdirSync(join(dir, 'scripts'));
     mkdirSync(join(dir, 'src/lib'), { recursive: true });
     cpSync(join(repo, 'scripts/archive-version.mjs'), join(dir, 'scripts/archive-version.mjs'));

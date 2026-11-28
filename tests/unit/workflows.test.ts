@@ -16,11 +16,11 @@
 //   output) is not followed.
 // - The permission check looks for the word "write" in the job's or the
 //   workflow's permissions.
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { afterAll, describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { parse } from 'yaml';
+import { tempDirs } from '../temp-dirs';
 
 const root = resolve(import.meta.dirname, '../..');
 const workflowDir = join(root, '.github/workflows');
@@ -296,8 +296,7 @@ describe('workflow policy predicates', () => {
   // The loader reads composite actions from action.yml or action.yaml and
   // leaves every other kind out, so the predicates take it as the worst case.
   describe('loading local actions', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'artic-actions-'));
-    afterAll(() => rmSync(dir, { recursive: true, force: true }));
+    const dir = tempDirs()('artic-actions-');
     const write = (name: string, file: string, yaml: string) => {
       mkdirSync(join(dir, name));
       writeFileSync(join(dir, name, file), yaml);

@@ -1,13 +1,12 @@
-import { cp, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { cp, mkdir, readdir, readFile, symlink, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { afterAll, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
 import { syncContributorDocs, transformDoc } from '../../scripts/lib/contributor-docs.mjs';
+import { tempDirs } from '../temp-dirs';
 
 const FIXTURE = resolve(import.meta.dirname, '../fixtures/artic-docs');
 
-const dirs: string[] = [];
-afterAll(() => Promise.all(dirs.map((d) => rm(d, { recursive: true, force: true }))));
+const tempDir = tempDirs();
 
 test('takes the title from the first H1 and drops it', () => {
   const r = transformDoc('# Backend seams\n\nBody', 'design/backends.md');
@@ -117,8 +116,7 @@ test('code spans with longer delimiters or over two lines keep their text', () =
 });
 
 test('sync copies only the published set', async () => {
-  const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
-  dirs.push(tmp);
+  const tmp = tempDir('artic-sync-');
   const written: string[] = await syncContributorDocs({ sourceDir: FIXTURE, outDir: tmp });
   expect(written.some((p) => p.includes('internal'))).toBe(false);
   expect(written.some((p) => p.includes('spikes'))).toBe(false);
@@ -132,9 +130,9 @@ test('sync copies only the published set', async () => {
 });
 
 test.skipIf(process.platform === 'win32')('sync skips symlinked files and folders', async () => {
-  const source = await mkdtemp(join(tmpdir(), 'artic-sync-src-'));
+  const source = tempDir('artic-sync-src-');
   await cp(FIXTURE, source, { recursive: true });
-  const outside = await mkdtemp(join(tmpdir(), 'artic-sync-outside-'));
+  const outside = tempDir('artic-sync-outside-');
   const marker = 'text from outside the docs folder';
   await writeFile(join(outside, 'outside.md'), `# Outside\n\n${marker}\n`);
   await mkdir(join(outside, 'outside-dir'));
@@ -142,52 +140,35 @@ test.skipIf(process.platform === 'win32')('sync skips symlinked files and folder
   await symlink(join(outside, 'outside.md'), join(source, 'design/linked.md'));
   await symlink(join(outside, 'outside-dir'), join(source, 'design/linked-dir'));
 
-  const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
-  try {
-    const written: string[] = await syncContributorDocs({ sourceDir: source, outDir: tmp });
-    expect(written.map((p) => p.slice(tmp.length + 1)).sort()).toEqual([
-      'architecture.md',
-      'design/loader-values.md',
-      'design/text.md',
-      'spec/technical-spec.md',
-    ]);
-    for (const file of written) expect(await readFile(file, 'utf8')).not.toContain(marker);
-  } finally {
-    await Promise.all([source, outside, tmp].map((d) => rm(d, { recursive: true, force: true })));
-  }
+  const tmp = tempDir('artic-sync-');
+  const written: string[] = await syncContributorDocs({ sourceDir: source, outDir: tmp });
+  expect(written.map((p) => p.slice(tmp.length + 1)).sort()).toEqual([
+    'architecture.md',
+    'design/loader-values.md',
+    'design/text.md',
+    'spec/technical-spec.md',
+  ]);
+  for (const file of written) expect(await readFile(file, 'utf8')).not.toContain(marker);
 });
 
 test.skipIf(process.platform === 'win32')('sync refuses a docs folder that is a symlink', async () => {
-  const outside = await mkdtemp(join(tmpdir(), 'artic-sync-outside-'));
+  const outside = tempDir('artic-sync-outside-');
   await cp(FIXTURE, outside, { recursive: true });
-  const clone = await mkdtemp(join(tmpdir(), 'artic-sync-clone-'));
+  const clone = tempDir('artic-sync-clone-');
   await symlink(outside, join(clone, 'docs'));
 
-  const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
-  try {
-    await expect(syncContributorDocs({ sourceDir: join(clone, 'docs'), outDir: tmp })).rejects.toThrow(
-      /not a folder/,
-    );
-    expect(await readdir(tmp)).toEqual([]);
-  } finally {
-    await Promise.all([outside, clone, tmp].map((d) => rm(d, { recursive: true, force: true })));
-  }
+  const tmp = tempDir('artic-sync-');
+  await expect(syncContributorDocs({ sourceDir: join(clone, 'docs'), outDir: tmp })).rejects.toThrow(/not a folder/);
+  expect(await readdir(tmp)).toEqual([]);
 });
 
 test('sync refuses a docs folder that does not exist', async () => {
-  const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
-  try {
-    await expect(syncContributorDocs({ sourceDir: join(tmp, 'missing'), outDir: tmp })).rejects.toThrow(
-      /not a folder/,
-    );
-  } finally {
-    await rm(tmp, { recursive: true, force: true });
-  }
+  const tmp = tempDir('artic-sync-');
+  await expect(syncContributorDocs({ sourceDir: join(tmp, 'missing'), outDir: tmp })).rejects.toThrow(/not a folder/);
 });
 
 test('written files carry quoted frontmatter titles', async () => {
-  const tmp = await mkdtemp(join(tmpdir(), 'artic-sync-'));
-  dirs.push(tmp);
+  const tmp = tempDir('artic-sync-');
   await syncContributorDocs({ sourceDir: FIXTURE, outDir: tmp });
   const out = await readFile(join(tmp, 'design/text.md'), 'utf8');
   expect(out.startsWith('---\ntitle: "Text \\"shaping\\""\n---\n')).toBe(true);

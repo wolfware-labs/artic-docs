@@ -1,21 +1,19 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { afterAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { tempDirs } from '../temp-dirs';
 
 const repo = resolve(__dirname, '../..');
 
 describe('apply-archive', () => {
-  const dirs: string[] = [];
-  afterAll(() => dirs.forEach((d) => rmSync(d, { recursive: true, force: true })));
+  const tempDir = tempDirs();
 
   const git = (cwd: string, ...args: string[]) => execFileSync('git', args, { cwd, encoding: 'utf8' });
 
   // A git repository with the given files staged and nothing committed.
   function stagedRepo(files: Record<string, string>) {
-    const dir = mkdtempSync(join(tmpdir(), 'artic-apply-'));
-    dirs.push(dir);
+    const dir = tempDir('artic-apply-');
     for (const [path, text] of Object.entries(files)) {
       mkdirSync(dirname(join(dir, path)), { recursive: true });
       writeFileSync(join(dir, path), text);
@@ -48,8 +46,7 @@ describe('apply-archive', () => {
   }
 
   function run(dir: string, patch: string, version: string) {
-    const out = join(dir, '..', `${dir.split('/').pop()}-output`);
-    dirs.push(out);
+    const out = join(tempDir('artic-apply-output-'), 'output');
     const result = spawnSync('node', ['scripts/apply-archive.mjs', patch, version], {
       cwd: dir,
       encoding: 'utf8',
