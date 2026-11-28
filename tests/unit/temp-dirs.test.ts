@@ -9,6 +9,7 @@ const made: string[] = [];
 // The check reads what the inner suite's afterAll left behind, so it must run
 // after that suite: shuffle is off here even when the run shuffles. A run that
 // filters the inner test out (-t) has nothing to check, so the check skips.
+// CI never filters, so there an empty list fails instead of skipping.
 describe('tempDirs', { shuffle: false }, () => {
   describe('in a suite', () => {
     const tempDir = tempDirs();
@@ -27,7 +28,10 @@ describe('tempDirs', { shuffle: false }, () => {
   });
 
   it('removes every folder it made once its suite has run', (ctx) => {
-    ctx.skip(made.length === 0, 'the test that makes the folders did not run');
+    if (made.length === 0) {
+      expect(process.env.CI, 'the test that makes the folders did not run').toBeFalsy();
+      ctx.skip('the test that makes the folders did not run');
+    }
     expect(made).toHaveLength(2);
     for (const dir of made) expect(existsSync(dir)).toBe(false);
   });
